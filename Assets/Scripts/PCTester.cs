@@ -15,10 +15,9 @@ public class PCTester : MonoBehaviour
             Ray cameraRay = camera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(cameraRay, out RaycastHit hit))
             {
-                if (map.CheckValidMapLocation(hit.point, out Vector3 validPoint))
+                if (map.CanPlace(hit.point))
                 {
-                    print("Valid hit " + hit.point + "  " + validPoint);
-                    pointer.transform.position = validPoint;
+                    print("Valid hit " + hit.point);
                 }
                 else
                 {

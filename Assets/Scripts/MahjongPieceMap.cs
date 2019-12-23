@@ -99,14 +99,15 @@ public class MahjongPieceMap : MonoBehaviour
     {
         if (CanPlace(worldPoint))
         {
-
+            // Set piece data
+            // GridToWorldPoint(WorldPointToGrid(worldPoint));
         }
         return false;
     }
 
     public bool CanRemove(Vector3 worldPoint)
     {
-
+        return false;
     }
 
     public bool TryRemove(Vector3 worldPoint)
