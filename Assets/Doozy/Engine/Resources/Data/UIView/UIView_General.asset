@@ -18,3 +18,5 @@ MonoBehaviour:
   - Unnamed
   - Main Menu
   - LoadingScreen
+  - MainBackground
+  - GameHUD
