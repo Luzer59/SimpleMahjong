@@ -110,7 +110,14 @@ MonoBehaviour:
   ErrorDuplicateNameFoundInGraph: 1
   m_inputSockets:
   - m_connectionMode: 1
-    m_connections: []
+    m_connections:
+    - m_inputConnectionPoint: {x: -2, y: 4}
+      m_outputConnectionPoint: {x: 106, y: 4}
+      m_id: 5bfd5ddd-a9cf-4ba3-be30-ca1b5bca669b
+      m_inputNodeId: 9fa7e560-a065-4597-aaa3-6e7b2d668dcb
+      m_inputSocketId: d75d70be-3bb0-45f0-a0ac-6541aaa5d520
+      m_outputNodeId: bf76b3c1-50d2-4441-abf4-69d6a9f2eb4c
+      m_outputSocketId: 5c433a5e-f3a6-4e66-94d1-a5c4bfb4bd74
     m_connectionPoints:
     - {x: -2, y: 4}
     - {x: 202, y: 4}
@@ -201,9 +208,9 @@ MonoBehaviour:
     m_connections:
     - m_inputConnectionPoint: {x: -2, y: 4}
       m_outputConnectionPoint: {x: 106, y: 4}
-      m_id: 60088f72-cea1-4a99-973e-7a58b8e36781
-      m_inputNodeId: c40775a9-d900-4592-bfba-c91fbe7a5ce5
-      m_inputSocketId: 348ef41a-377f-4f6f-8113-944e2a958e9d
+      m_id: 5bfd5ddd-a9cf-4ba3-be30-ca1b5bca669b
+      m_inputNodeId: 9fa7e560-a065-4597-aaa3-6e7b2d668dcb
+      m_inputSocketId: d75d70be-3bb0-45f0-a0ac-6541aaa5d520
       m_outputNodeId: bf76b3c1-50d2-4441-abf4-69d6a9f2eb4c
       m_outputSocketId: 5c433a5e-f3a6-4e66-94d1-a5c4bfb4bd74
     m_connectionPoints:
@@ -318,14 +325,7 @@ MonoBehaviour:
   ErrorDuplicateNameFoundInGraph: 0
   m_inputSockets:
   - m_connectionMode: 1
-    m_connections:
-    - m_inputConnectionPoint: {x: -2, y: 4}
-      m_outputConnectionPoint: {x: 106, y: 4}
-      m_id: 60088f72-cea1-4a99-973e-7a58b8e36781
-      m_inputNodeId: c40775a9-d900-4592-bfba-c91fbe7a5ce5
-      m_inputSocketId: 348ef41a-377f-4f6f-8113-944e2a958e9d
-      m_outputNodeId: bf76b3c1-50d2-4441-abf4-69d6a9f2eb4c
-      m_outputSocketId: 5c433a5e-f3a6-4e66-94d1-a5c4bfb4bd74
+    m_connections: []
     m_connectionPoints:
     - {x: -2, y: 4}
     - {x: 202, y: 4}
@@ -374,7 +374,7 @@ MonoBehaviour:
   m_height: 128
   m_width: 216
   m_x: -804
-  m_y: -12
+  m_y: -132
   m_minimumInputSocketsCount: 1
   m_minimumOutputSocketsCount: 1
   m_graphId: 74466bff-44b5-4c37-ae17-eb43f76973ef
@@ -635,7 +635,7 @@ MonoBehaviour:
   m_version: 1
   m_description: 
   m_id: 74466bff-44b5-4c37-ae17-eb43f76973ef
-  m_lastModified: 132216766221683640
+  m_lastModified: 132216794487309920
 --- !u!114 &621738079322919878
 MonoBehaviour:
   m_ObjectHideFlags: 1
