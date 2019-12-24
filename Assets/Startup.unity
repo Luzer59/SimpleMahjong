@@ -184,7 +184,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DebugMode: 0
   StartPosition: {x: 0, y: 0, z: 0}
-  StartRotation: {x: 0, y: 0, z: 0}
+  StartRotation: {x: -0, y: 0, z: 0}
   StartScale: {x: 1, y: 1, z: 1}
   StartAlpha: 1
   AutoHideAfterShow: 0
@@ -202,7 +202,7 @@ MonoBehaviour:
       AnimationType: 2
       Move:
         AnimationType: 2
-        Enabled: 1
+        Enabled: 0
         From: {x: 0, y: 0, z: 0}
         To: {x: 0, y: 0, z: 0}
         By: {x: 0, y: 0, z: 0}
@@ -213,11 +213,29 @@ MonoBehaviour:
         LoopType: 1
         Direction: 1
         CustomPosition: {x: 0, y: 0, z: 0}
-        EaseType: 0
+        EaseType: 1
         Ease: 2
         AnimationCurve:
           serializedVersion: 2
-          m_Curve: []
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 2
+            outSlope: 2
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
@@ -284,7 +302,7 @@ MonoBehaviour:
           m_PostInfinity: 2
           m_RotationOrder: 4
         StartDelay: 0
-        Duration: 0.3
+        Duration: 0.5
     AutoStartLoopAnimation: 1
     LoadSelectedPresetAtRuntime: 0
     InstantAnimation: 0
@@ -476,7 +494,7 @@ MonoBehaviour:
       AnimationType: 1
       Move:
         AnimationType: 1
-        Enabled: 1
+        Enabled: 0
         From: {x: 0, y: 0, z: 0}
         To: {x: 0, y: 0, z: 0}
         By: {x: 0, y: 0, z: 0}
@@ -487,11 +505,29 @@ MonoBehaviour:
         LoopType: 1
         Direction: 0
         CustomPosition: {x: 0, y: 0, z: 0}
-        EaseType: 0
+        EaseType: 1
         Ease: 3
         AnimationCurve:
           serializedVersion: 2
-          m_Curve: []
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 2
+            outSlope: 2
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
@@ -558,7 +594,7 @@ MonoBehaviour:
           m_PostInfinity: 2
           m_RotationOrder: 4
         StartDelay: 0
-        Duration: 0.3
+        Duration: 0.5
     AutoStartLoopAnimation: 1
     LoadSelectedPresetAtRuntime: 0
     InstantAnimation: 0
@@ -1097,11 +1133,29 @@ MonoBehaviour:
         UseCustomFromAndTo: 0
         NumberOfLoops: -1
         LoopType: 1
-        EaseType: 0
+        EaseType: 1
         Ease: 1
         AnimationCurve:
           serializedVersion: 2
-          m_Curve: []
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0.008984747
+            outSlope: 0.008984747
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.2625
+            outWeight: 0
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
@@ -1371,11 +1425,29 @@ MonoBehaviour:
         UseCustomFromAndTo: 0
         NumberOfLoops: -1
         LoopType: 1
-        EaseType: 0
+        EaseType: 1
         Ease: 1
         AnimationCurve:
           serializedVersion: 2
-          m_Curve: []
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0.014702279
+            outSlope: 0.014702279
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.32083333
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
           m_PreInfinity: 2
           m_PostInfinity: 2
           m_RotationOrder: 4
