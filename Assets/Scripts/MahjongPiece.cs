@@ -28,46 +28,6 @@ public class MahjongPiece : MonoBehaviour
         piecesRight = new HashSet<MahjongPiece>();
     }
 
-    public void AddPieceAbove(MahjongPiece piece)
-    {
-        piecesAbove.Add(piece);
-    }
-
-    public void RemovePieceAbove(MahjongPiece piece)
-    {
-        piecesAbove.Remove(piece);
-    }
-
-    public void AddPieceBellow(MahjongPiece piece)
-    {
-        piecesAbove.Add(piece);
-    }
-
-    public void RemovePieceBellow(MahjongPiece piece)
-    {
-        piecesAbove.Remove(piece);
-    }
-
-    public void AddPieceLeft(MahjongPiece piece)
-    {
-        piecesAbove.Add(piece);
-    }
-
-    public void RemovePieceLeft(MahjongPiece piece)
-    {
-        piecesAbove.Remove(piece);
-    }
-
-    public void AddPieceRight(MahjongPiece piece)
-    {
-        piecesAbove.Add(piece);
-    }
-
-    public void RemovePieceRight(MahjongPiece piece)
-    {
-        piecesAbove.Remove(piece);
-    }
-
     public bool AreSidesBlocked()
     {
         return piecesLeft.Count > 0 && piecesRight.Count > 0;
@@ -108,26 +68,26 @@ public class MahjongPiece : MonoBehaviour
         MahjongPiece[] inputArray = above.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
-            AddPieceAbove(inputArray[i]);
-            inputArray[i].AddPieceBellow(this);
+            piecesAbove.Add(inputArray[i]);
+            inputArray[i].piecesBellow.Add(this);
         }
         inputArray = bellow.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
-            AddPieceBellow(inputArray[i]);
-            inputArray[i].AddPieceAbove(this);
+            piecesBellow.Add(inputArray[i]);
+            inputArray[i].piecesAbove.Add(this);
         }
         inputArray = left.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
-            AddPieceLeft(inputArray[i]);
-            inputArray[i].AddPieceRight(this);
+            piecesLeft.Add(inputArray[i]);
+            inputArray[i].piecesRight.Add(this);
         }
         inputArray = right.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
-            AddPieceRight(inputArray[i]);
-            inputArray[i].AddPieceLeft(this);
+            piecesRight.Add(inputArray[i]);
+            inputArray[i].piecesLeft.Add(this);
         }
     }
 
@@ -136,26 +96,26 @@ public class MahjongPiece : MonoBehaviour
         MahjongPiece[] inputArray = piecesAbove.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
-            RemovePieceAbove(inputArray[i]);
-            inputArray[i].RemovePieceAbove(this);
+            piecesAbove.Remove(inputArray[i]);
+            inputArray[i].piecesBellow.Remove(this);
         }
         inputArray = piecesBellow.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
-            RemovePieceBellow(inputArray[i]);
-            inputArray[i].RemovePieceAbove(this);
+            piecesBellow.Remove(inputArray[i]);
+            inputArray[i].piecesAbove.Remove(this);
         }
         inputArray = piecesLeft.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
-            RemovePieceLeft(inputArray[i]);
-            inputArray[i].RemovePieceLeft(this);
+            piecesLeft.Remove(inputArray[i]);
+            inputArray[i].piecesRight.Remove(this);
         }
         inputArray = piecesRight.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
-            RemovePieceRight(inputArray[i]);
-            inputArray[i].RemovePieceRight(this);
+            piecesRight.Remove(inputArray[i]);
+            inputArray[i].piecesLeft.Remove(this);
         }
 
         Destroy(gameObject);

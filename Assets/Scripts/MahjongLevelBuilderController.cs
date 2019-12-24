@@ -27,5 +27,37 @@ public class MahjongLevelBuilderController : MonoBehaviour
         {
             LoadMap();
         }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(cameraRay, out RaycastHit hit))
+            {
+                if (map.TryPlace(hit.point, true))
+                {
+                    print("Valid hit " + hit.point);
+                }
+                else
+                {
+                    print("Invalid hit " + hit.point);
+                }
+            }
+        }
+        if (Input.GetMouseButtonDown(1))
+        {
+            Ray cameraRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(cameraRay, out RaycastHit hit))
+            {
+                MahjongPiece piece = hit.collider.GetComponentInParent<MahjongPiece>();
+                if (piece && map.TryRemove(piece, false))
+                {
+                    print("Valid hit " + hit.point);
+                }
+                else
+                {
+                    print("Invalid hit " + hit.point);
+                }
+            }
+        }
     }
 }

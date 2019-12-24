@@ -9,21 +9,7 @@ public class PCTester : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Ray cameraRay = camera.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(cameraRay, out RaycastHit hit))
-            {
-                if (map.TryPlace(hit.point, true))
-                {
-                    print("Valid hit " + hit.point);
-                }
-                else
-                {
-                    print("Invalid hit " + hit.point);
-                }
-            }
-        }
+
     }
 
     /*public int pressID = -1;

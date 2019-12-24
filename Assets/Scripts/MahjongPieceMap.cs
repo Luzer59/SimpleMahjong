@@ -176,6 +176,23 @@ public class MahjongPieceMap : MonoBehaviour
             0);
     }
 
+    private Vector3Int WorldPointToHighestGridCenter(Vector3 worldPoint)
+    {
+        Vector3Int index = WorldPointToGrid(worldPoint);
+        for (int i = 0; i < heightSize; i++)
+        {
+            if (map[i][index.x, index.y].center)
+            {
+                index.z = i;
+            }
+            else
+            {
+                break;
+            }
+        }
+        return index;
+    }
+
     private Vector3 GridToWorldPoint(Vector3Int index)
     {
         return transform.TransformPoint(new Vector3(
@@ -192,7 +209,7 @@ public class MahjongPieceMap : MonoBehaviour
             return;
         }
 
-        //loadedMapData = data;
+        UnloadMap();
 
         for (int i = 0; i < data.pieceCount; i++)
         {
@@ -264,7 +281,7 @@ public class MahjongPieceMap : MonoBehaviour
                 {
                     if (map[u][i, p].center)
                     {
-                        
+                        map[u][i, p].center.Remove();
                     }
                 }
             }
@@ -368,46 +385,19 @@ public class MahjongPieceMap : MonoBehaviour
         return false;
     }
 
-    public bool CanRemove(Vector3 worldPoint, bool sideBlocking = true)
+    public bool TryRemove(Vector3Int index, bool sideBlocking)
     {
-        Vector3Int index = WorldPointToGrid(worldPoint);
-
-        if (map[index.z][index.x, index.y].center)
-        {
-            return CanRemove(map[index.z][index.x, index.y].center, sideBlocking);
-        }
-
-        return false;
-    }
-
-    public bool CanRemove(MahjongPiece piece, bool sideBlocking = true)
-    {
-        if ((sideBlocking && piece.AreSidesBlocked()) || piece.IsAboveBlocked())
+        if ((sideBlocking && map[index.z][index.x, index.y].center.AreSidesBlocked()) || map[index.z][index.x, index.y].center.IsAboveBlocked())
             return false;
 
+        map[index.z][index.x, index.y].center.Remove();
+        SetCellState(index, null);
         return true;
     }
 
-    public bool TryRemove(Vector3 worldPoint, bool sideBlocking = true)
+    public bool TryRemove(MahjongPiece piece, bool sideBlocking)
     {
-        if (CanRemove(worldPoint, sideBlocking))
-        {
-            Vector3Int index = WorldPointToGrid(worldPoint);
-            map[index.z][index.x, index.y].center.Remove();
-            SetCellState(index, null);
-        }
-        return false;
-    }
-
-    public bool TryRemove(MahjongPiece piece, bool sideBlocking = true)
-    {
-        if (CanRemove(piece, sideBlocking))
-        {
-            Vector3Int index = WorldPointToGrid(piece.GetWorldPoint());
-            piece.Remove();
-            SetCellState(index, null);
-        }
-        return false;
+        return TryRemove(WorldPointToHighestGridCenter(piece.GetWorldPoint()), sideBlocking);
     }
 
     private void SetCellState(Vector3Int index, MahjongPiece piece)
