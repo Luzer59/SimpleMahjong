@@ -4,15 +4,28 @@ using UnityEngine;
 
 public class MahjongLevelBuilderController : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField]
+    private MahjongPieceMap map;
+
+    public void SaveMap()
     {
-        
+        FileIO.Save("level", map.ConvertLoadedMap());
     }
 
-    // Update is called once per frame
-    void Update()
+    public void LoadMap()
     {
-        
+        map.LoadMap(FileIO.Load<MahjongMapData>("level"));
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            SaveMap();
+        }
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            LoadMap();
+        }
     }
 }

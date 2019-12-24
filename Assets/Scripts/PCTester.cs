@@ -7,25 +7,15 @@ public class PCTester : MonoBehaviour
     new public Camera camera;
     public MahjongPieceMap map;
 
-    public MahjongPiece piecePrefab;
-    public MahjongPiece currentPiece;
-
-    /*private void Update()
+    private void Update()
     {
-        if (!currentPiece)
-        {
-            currentPiece = Instantiate(piecePrefab);
-            currentPiece.Hide();
-        }
-
         if (Input.GetMouseButtonDown(0))
         {
             Ray cameraRay = camera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(cameraRay, out RaycastHit hit))
             {
-                if (map.TryPlace(hit.point, currentPiece))
+                if (map.TryPlace(hit.point, true))
                 {
-                    currentPiece = null;
                     print("Valid hit " + hit.point);
                 }
                 else
@@ -34,9 +24,9 @@ public class PCTester : MonoBehaviour
                 }
             }
         }
-    }*/
+    }
 
-    public int pressID = -1;
+    /*public int pressID = -1;
     public bool pressed = false;
     public GameInput.InputType type = GameInput.InputType.Normal;
 
@@ -57,5 +47,5 @@ public class PCTester : MonoBehaviour
                 pressed = false;
             }
         }
-    }
+    }*/
 }

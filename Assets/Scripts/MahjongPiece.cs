@@ -8,6 +8,8 @@ public class MahjongPiece : MonoBehaviour
     public int id;
 
     [SerializeField]
+    private GameObject defaultTypePrefab;
+    [SerializeField]
     private GameObject[] typePrefabs;
 
     [SerializeField]
@@ -88,18 +90,20 @@ public class MahjongPiece : MonoBehaviour
 
     public void Show()
     {
-        activeTypeObject.SetActive(true);
+        if (activeTypeObject)
+            activeTypeObject.SetActive(true);
     }
 
     public void Hide()
     {
-        activeTypeObject.SetActive(false);
+        if (activeTypeObject)
+            activeTypeObject.SetActive(false);
     }
 
     public void Place(Vector3 worldPoint, HashSet<MahjongPiece> above, HashSet<MahjongPiece> bellow, HashSet<MahjongPiece> left, HashSet<MahjongPiece> right)
     {
         transform.position = worldPoint;
-        Show();
+        SetType(-1);
 
         MahjongPiece[] inputArray = above.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
@@ -129,8 +133,6 @@ public class MahjongPiece : MonoBehaviour
 
     public void Remove()
     {
-        Hide();
-
         MahjongPiece[] inputArray = piecesAbove.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
@@ -155,22 +157,26 @@ public class MahjongPiece : MonoBehaviour
             RemovePieceRight(inputArray[i]);
             inputArray[i].RemovePieceRight(this);
         }
+
+        Destroy(gameObject);
     }
 
     public void SetType(int type)
     {
         id = type;
 
-        if (typePrefabs.Length == 0)
-        {
-            Debug.LogWarning("No type prefabs set");
-        }
-
         if (activeTypeObject)
         {
             Destroy(activeTypeObject);
         }
 
-        activeTypeObject = Instantiate(typePrefabs[type], Vector3.zero, Quaternion.identity, transform);
+        if (type == -1)
+        {
+            activeTypeObject = Instantiate(defaultTypePrefab, transform, false);
+        }
+        else
+        {
+            activeTypeObject = Instantiate(typePrefabs[type], transform, false);
+        }
     }
 }

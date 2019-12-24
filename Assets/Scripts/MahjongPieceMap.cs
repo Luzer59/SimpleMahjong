@@ -334,7 +334,7 @@ public class MahjongPieceMap : MonoBehaviour
 
     public bool TryPlace(Vector3Int index, bool needSupport)
     {
-        if (GetOccupyingPieces(index, out bool filled, out HashSet<MahjongPiece> pieces))
+        if (!GetOccupyingPieces(index, out bool filled, out HashSet<MahjongPiece> pieces))
         {
             HashSet<MahjongPiece> piecesBellow = new HashSet<MahjongPiece>();
             filled = true;
@@ -363,7 +363,7 @@ public class MahjongPieceMap : MonoBehaviour
     {
         if (GetPossiblePieceIndex(worldPoint, out Vector3Int index, out HashSet<MahjongPiece> piecesBellow))
         {
-            TryPlace(index, needSupport);
+            return TryPlace(index, needSupport);
         }
         return false;
     }
