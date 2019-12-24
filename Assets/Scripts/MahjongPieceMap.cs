@@ -104,7 +104,7 @@ public class MahjongPieceMap : MonoBehaviour
             (verticalSize - 1) / 2f * verticalSpacing - verticalSpacing * index.y));
     }
 
-    public void LoadMap(MahjongMapData data)
+    public void LoadMap(MahjongMapData data, bool init)
     {
         if (data.pieceCount % 2 != 0)
         {
@@ -116,11 +116,32 @@ public class MahjongPieceMap : MonoBehaviour
         {
             TryPlace(new Vector3Int(data.pieceHorizontalIndex[i], data.pieceVerticalIndex[i], data.pieceHeightIndex[i]), false);
         }
+        if (init)
+        {
+            InitPieces();
+        }
+    }
+
+    public void InitPieces()
+    {
+        // Set different pieces in a solveable puzzle
     }
 
     public void UnloadMap()
     {
-
+        for (int i = 0; i < horizontalSize; i++)
+        {
+            for (int p = 0; p < verticalSize; p++)
+            {
+                for (int u = 0; u < heightSize; u++)
+                {
+                    if (map[u][i, p].center)
+                    {
+                        
+                    }
+                }
+            }
+        }
     }
 
     public MahjongMapData ConvertLoadedMap()
