@@ -8,12 +8,15 @@ public class MahjongPiece : MonoBehaviour
     public int id;
 
     [SerializeField]
-    private GameObject visuals;
+    private GameObject[] typePrefabs;
 
-    private HashSet<MahjongPiece> piecesAbove;
-    private HashSet<MahjongPiece> piecesBellow;
-    private HashSet<MahjongPiece> piecesLeft;
-    private HashSet<MahjongPiece> piecesRight;
+    [SerializeField]
+    private GameObject activeTypeObject;
+
+    public HashSet<MahjongPiece> piecesAbove;
+    public HashSet<MahjongPiece> piecesBellow;
+    public HashSet<MahjongPiece> piecesLeft;
+    public HashSet<MahjongPiece> piecesRight;
 
     private void Awake()
     {
@@ -68,7 +71,7 @@ public class MahjongPiece : MonoBehaviour
         return piecesLeft.Count > 0 && piecesRight.Count > 0;
     }
 
-    public bool IsAboveBlocking()
+    public bool IsAboveBlocked()
     {
         return piecesAbove.Count > 0;
     }
@@ -78,14 +81,19 @@ public class MahjongPiece : MonoBehaviour
         return transform.position;
     }
 
+    public bool IsSelectable()
+    {
+        return !(AreSidesBlocked() || IsAboveBlocked());
+    }
+
     public void Show()
     {
-        visuals.SetActive(true);
+        activeTypeObject.SetActive(true);
     }
 
     public void Hide()
     {
-        visuals.SetActive(false);
+        activeTypeObject.SetActive(false);
     }
 
     public void Place(Vector3 worldPoint, HashSet<MahjongPiece> above, HashSet<MahjongPiece> bellow, HashSet<MahjongPiece> left, HashSet<MahjongPiece> right)
@@ -147,5 +155,22 @@ public class MahjongPiece : MonoBehaviour
             RemovePieceRight(inputArray[i]);
             inputArray[i].RemovePieceRight(this);
         }
+    }
+
+    public void SetType(int type)
+    {
+        id = type;
+
+        if (typePrefabs.Length == 0)
+        {
+            Debug.LogWarning("No type prefabs set");
+        }
+
+        if (activeTypeObject)
+        {
+            Destroy(activeTypeObject);
+        }
+
+        activeTypeObject = Instantiate(typePrefabs[type], Vector3.zero, Quaternion.identity, transform);
     }
 }

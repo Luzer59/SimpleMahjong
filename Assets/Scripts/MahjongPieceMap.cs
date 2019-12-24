@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class MahjongPieceMap : MonoBehaviour
 {
@@ -59,6 +60,85 @@ public class MahjongPieceMap : MonoBehaviour
 #endif
     }
 
+    private class RandomMahjongRow
+    {
+        public RandomMahjongRow(List<RandomMahjongRow> lowerRows)
+        {
+            this.lowerRows = lowerRows;
+            pieces = new List<MahjongPiece>();
+            piecesTaken = new List<bool>();
+            piecesTakenCount = 0;
+        }
+
+        private List<RandomMahjongRow> lowerRows;
+        private List<MahjongPiece> pieces;
+        private List<bool> piecesTaken;
+        private int piecesTakenCount;
+
+        public void Add(MahjongPiece piece)
+        {
+            pieces.Add(piece);
+            piecesTaken.Add(false);
+        }
+
+        public void RemoveEqual(List<MahjongPiece> list)
+        {
+            for (int i = 0; i < pieces.Count; i++)
+            {
+                list.Remove(pieces[i]);
+            }
+        }
+
+        public MahjongPiece Take()
+        {
+            List<MahjongPiece> input;
+            List<int> valid = new List<int>();
+            for (int i = 0; i < pieces.Count; i++)
+            {
+                if (piecesTakenCount != 0)
+                {
+                    if (piecesTaken[i])
+                        continue;
+
+                    if (pieces.Count > 1)
+                    {
+                        if (i == 0)
+                        {
+                            if (!piecesTaken[i + 1])
+                                continue;
+                        }
+                        else if (i == pieces.Count - 1)
+                        {
+                            if (!piecesTaken[i - 1])
+                                continue;
+                        }
+                        else
+                        {
+                            if (!piecesTaken[i + 1] && !piecesTaken[i - 1])
+                                continue;
+                        }
+                    }
+                }
+
+                input = pieces[i].piecesBellow.ToList();
+                for (int p = 0; p < lowerRows.Count; p++)
+                {
+                    lowerRows[p].RemoveEqual(input);
+                    if (input.Count == 0)
+                        break;
+                }
+
+                valid.Add(i);
+            }
+
+            int random = Random.Range(0, valid.Count);
+            piecesTaken[valid[random]] = true;
+            piecesTakenCount++;
+
+            return pieces[valid[random]];
+        }
+    }
+
     private void Awake()
     {
         map = new Cell[heightSize][,];
@@ -104,7 +184,7 @@ public class MahjongPieceMap : MonoBehaviour
             (verticalSize - 1) / 2f * verticalSpacing - verticalSpacing * index.y));
     }
 
-    public void LoadMap(MahjongMapData data, bool init)
+    public void LoadMap(MahjongMapData data)
     {
         if (data.pieceCount % 2 != 0)
         {
@@ -112,19 +192,66 @@ public class MahjongPieceMap : MonoBehaviour
             return;
         }
 
+        //loadedMapData = data;
+
         for (int i = 0; i < data.pieceCount; i++)
         {
             TryPlace(new Vector3Int(data.pieceHorizontalIndex[i], data.pieceVerticalIndex[i], data.pieceHeightIndex[i]), false);
         }
-        if (init)
-        {
-            InitPieces();
-        }
     }
 
-    public void InitPieces()
+    public void InitPieces(int maxPieceTypes)
     {
-        // Set different pieces in a solveable puzzle
+        List<RandomMahjongRow> rows = new List<RandomMahjongRow>();
+        int lastHeightStartIndex = 0;
+        int lastHeightEndIndex = 0;
+        bool rowActive = false;
+        int totalPieces = 0;
+
+        // Find rows
+        for (int u = 0; u < heightSize; u++)
+        {
+            for (int p = 0; p < verticalSize; p++)
+            {
+                for (int i = 0; i < horizontalSize; i++)
+                {
+                    if (map[u][i, p].center && !rowActive)
+                    {
+                        rows.Add(new RandomMahjongRow(rows.GetRange(lastHeightStartIndex, lastHeightEndIndex - lastHeightStartIndex)));
+                        rowActive = true;
+                    }
+                    else
+                    {
+                        rowActive = false;
+                    }
+                    if (rowActive)
+                    {
+                        rows[rows.Count - 1].Add(map[u][i, p].center);
+                        totalPieces++;
+                        i += Mathf.Max(0, 1 + (pieceSize - 1) * 2);
+                    }
+                }
+            }
+            lastHeightStartIndex = lastHeightEndIndex + 1;
+            lastHeightEndIndex = rows.Count - 1;
+        }
+
+        Debug.Log("Found " + rows.Count + " rows with total " + totalPieces + " pieces");
+
+        int currentPieceType = 0;
+        for (int i = 0; i < totalPieces; i++)
+        {
+            MahjongPiece piece = rows[Random.Range(0, rows.Count)].Take();
+            piece.SetType(currentPieceType);
+            if (i % 2 == 1)
+            {
+                currentPieceType++;
+                if (currentPieceType > maxPieceTypes - 1)
+                {
+                    currentPieceType = 0;
+                }
+            }
+        }
     }
 
     public void UnloadMap()
@@ -255,7 +382,7 @@ public class MahjongPieceMap : MonoBehaviour
 
     public bool CanRemove(MahjongPiece piece, bool sideBlocking = true)
     {
-        if ((sideBlocking && piece.AreSidesBlocked()) || piece.IsAboveBlocking())
+        if ((sideBlocking && piece.AreSidesBlocked()) || piece.IsAboveBlocked())
             return false;
 
         return true;
