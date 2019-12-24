@@ -4,5 +4,14 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: fbc273794572b81479de0b70db54ce1b
+  - enabled: 1
+    path: Assets/Scenes/MahjongLevel.unity
+    guid: 327764b22bb308e4f9f38723f651c3a4
+  - enabled: 1
+    path: Assets/Scenes/MahjongLevelBuilder.unity
+    guid: e6eb7535d57addf4ca8b13560cbbeb98
   m_configObjects: {}

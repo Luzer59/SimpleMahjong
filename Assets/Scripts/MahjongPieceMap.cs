@@ -112,6 +112,11 @@ public class MahjongPieceMap : MonoBehaviour
             (verticalSize - 1) / 2f * verticalSpacing - verticalSpacing * index.y));
     }
 
+    private void RecalculateMapRefences()
+    {
+        // If map not configured, should be baked in map files (or should they?)
+    }
+
     public bool CanPlace(Vector3 worldPoint, out Vector3Int index, out HashSet<MahjongPiece> piecesBellow)
     {
         index = WorldPointToGrid(worldPoint);

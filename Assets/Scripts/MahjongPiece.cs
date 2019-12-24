@@ -5,6 +5,8 @@ using System.Linq;
 
 public class MahjongPiece : MonoBehaviour
 {
+    public int id;
+
     [SerializeField]
     private GameObject visuals;
 
