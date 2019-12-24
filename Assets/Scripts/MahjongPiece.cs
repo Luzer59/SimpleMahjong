@@ -88,12 +88,18 @@ public class MahjongPiece : MonoBehaviour
         visuals.SetActive(false);
     }
 
-    public void Place(Vector3 worldPoint, HashSet<MahjongPiece> bellow, HashSet<MahjongPiece> left, HashSet<MahjongPiece> right)
+    public void Place(Vector3 worldPoint, HashSet<MahjongPiece> above, HashSet<MahjongPiece> bellow, HashSet<MahjongPiece> left, HashSet<MahjongPiece> right)
     {
         transform.position = worldPoint;
         Show();
 
-        MahjongPiece[] inputArray = bellow.ToArray();
+        MahjongPiece[] inputArray = above.ToArray();
+        for (int i = 0; i < inputArray.Length; i++)
+        {
+            AddPieceAbove(inputArray[i]);
+            inputArray[i].AddPieceBellow(this);
+        }
+        inputArray = bellow.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
             AddPieceBellow(inputArray[i]);
@@ -102,27 +108,28 @@ public class MahjongPiece : MonoBehaviour
         inputArray = left.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
-            AddPieceRight(inputArray[i]);
+            AddPieceLeft(inputArray[i]);
             inputArray[i].AddPieceRight(this);
         }
         inputArray = right.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
-            AddPieceLeft(inputArray[i]);
+            AddPieceRight(inputArray[i]);
             inputArray[i].AddPieceLeft(this);
         }
     }
 
     public void Remove()
     {
-        if (piecesAbove.Count > 0)
-        {
-            return;
-        }
-
         Hide();
 
-        MahjongPiece[] inputArray = piecesBellow.ToArray();
+        MahjongPiece[] inputArray = piecesAbove.ToArray();
+        for (int i = 0; i < inputArray.Length; i++)
+        {
+            RemovePieceAbove(inputArray[i]);
+            inputArray[i].RemovePieceAbove(this);
+        }
+        inputArray = piecesBellow.ToArray();
         for (int i = 0; i < inputArray.Length; i++)
         {
             RemovePieceBellow(inputArray[i]);

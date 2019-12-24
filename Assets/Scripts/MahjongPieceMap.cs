@@ -19,6 +19,9 @@ public class MahjongPieceMap : MonoBehaviour
     [SerializeField]
     private int pieceSize = 1;
 
+    [SerializeField]
+    private MahjongPiece piecePrefab;
+
     private Cell[][,] map;
 
 #if UNITY_EDITOR
@@ -67,6 +70,7 @@ public class MahjongPieceMap : MonoBehaviour
                 for (int u = 0; u < verticalSize; u++)
                 {
                     map[i][p, u] = new Cell();
+#if UNITY_EDITOR
                     if (debug && i == 0)
                     {
                         map[i][p, u].upLeftDebug = Instantiate(cellDebugPrefab, GridToWorldPoint(new Vector3Int(p, u, i)) + new Vector3(-horizontalSpacing * debugSpacing, 0f, verticalSpacing * debugSpacing), Quaternion.identity, transform);
@@ -75,20 +79,8 @@ public class MahjongPieceMap : MonoBehaviour
                         map[i][p, u].downRightDebug = Instantiate(cellDebugPrefab, GridToWorldPoint(new Vector3Int(p, u, i)) + new Vector3(horizontalSpacing * debugSpacing, 0f, -verticalSpacing * debugSpacing), Quaternion.identity, transform);
                         map[i][p, u].centerDebug = Instantiate(cellDebugPrefab, GridToWorldPoint(new Vector3Int(p, u, i)), Quaternion.identity, transform);
                     }
+#endif
                 }
-            }
-        }
-    }
-
-    private void Update()
-    {
-        Vector3 point;
-        for (int i = 0; i < horizontalSize; i++)
-        {
-            for (int p = 0; p < verticalSize; p++)
-            {
-                point = new Vector3(-(horizontalSize - 1) / 2f * horizontalSpacing + horizontalSpacing * i, 0f, (verticalSize - 1) / 2f * verticalSpacing - verticalSpacing * p);
-                Debug.DrawLine(transform.position + point, transform.position + point + transform.up, Color.green);
             }
         }
     }
@@ -112,12 +104,52 @@ public class MahjongPieceMap : MonoBehaviour
             (verticalSize - 1) / 2f * verticalSpacing - verticalSpacing * index.y));
     }
 
-    private void RecalculateMapRefences()
+    public void LoadMap(MahjongMapData data)
     {
-        // If map not configured, should be baked in map files (or should they?)
+        if (data.pieceCount % 2 != 0)
+        {
+            Debug.LogError("Non-even map size");
+            return;
+        }
+
+        for (int i = 0; i < data.pieceCount; i++)
+        {
+            TryPlace(new Vector3Int(data.pieceHorizontalIndex[i], data.pieceVerticalIndex[i], data.pieceHeightIndex[i]), false);
+        }
     }
 
-    public bool CanPlace(Vector3 worldPoint, out Vector3Int index, out HashSet<MahjongPiece> piecesBellow)
+    public void UnloadMap()
+    {
+
+    }
+
+    public MahjongMapData ConvertLoadedMap()
+    {
+        List<Vector3Int> pieces = new List<Vector3Int>();
+        for (int i = 0; i < horizontalSize; i++)
+        {
+            for (int p = 0; p < verticalSize; p++)
+            {
+                for (int u = 0; u < heightSize; u++)
+                {
+                    if (map[u][i, p].center)
+                    {
+                        pieces.Add(new Vector3Int(i, p, u));
+                    }
+                }
+            }
+        }
+        MahjongMapData data = new MahjongMapData(pieces.Count);
+        for (int i = 0; i < data.pieceCount; i++)
+        {
+            data.pieceHorizontalIndex[i] = pieces[i].x;
+            data.pieceVerticalIndex[i] = pieces[i].y;
+            data.pieceHeightIndex[i] = pieces[i].z;
+        }
+        return data;
+    }
+
+    public bool GetPossiblePieceIndex(Vector3 worldPoint, out Vector3Int index, out HashSet<MahjongPiece> piecesBellow)
     {
         index = WorldPointToGrid(worldPoint);
         piecesBellow = new HashSet<MahjongPiece>();
@@ -152,14 +184,38 @@ public class MahjongPieceMap : MonoBehaviour
         return false;
     }
 
-    public bool TryPlace(Vector3 worldPoint, MahjongPiece piece)
+    public bool TryPlace(Vector3Int index, bool needSupport)
     {
-        if (CanPlace(worldPoint, out Vector3Int index, out HashSet<MahjongPiece> piecesBellow))
+        if (GetOccupyingPieces(index, out bool filled, out HashSet<MahjongPiece> pieces))
         {
-            GetSideBlockingPieces(index, out HashSet<MahjongPiece> piecesLeft, out HashSet<MahjongPiece> piecesRight);
-            piece.Place(GridToWorldPoint(index), piecesBellow, piecesLeft, piecesRight);
-            SetCellState(index, piece);
-            return true;
+            HashSet<MahjongPiece> piecesBellow = new HashSet<MahjongPiece>();
+            filled = true;
+            if (needSupport && index.z > 0)
+            {
+                GetOccupyingPieces(new Vector3Int(index.x, index.y, index.z - 1), out filled, out piecesBellow);
+            }
+            if (filled)
+            {
+                GetSideBlockingPieces(index, out HashSet<MahjongPiece> piecesLeft, out HashSet<MahjongPiece> piecesRight);
+                HashSet<MahjongPiece> piecesAbove = new HashSet<MahjongPiece>();
+                if (index.z < heightSize - 1)
+                {
+                    GetOccupyingPieces(index, out filled, out piecesAbove);
+                }
+                MahjongPiece newPiece = Instantiate(piecePrefab);
+                newPiece.Place(GridToWorldPoint(index), piecesAbove, piecesBellow, piecesLeft, piecesRight);
+                SetCellState(index, newPiece);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public bool TryPlace(Vector3 worldPoint, bool needSupport)
+    {
+        if (GetPossiblePieceIndex(worldPoint, out Vector3Int index, out HashSet<MahjongPiece> piecesBellow))
+        {
+            TryPlace(index, needSupport);
         }
         return false;
     }
