@@ -367,7 +367,7 @@ GameObject:
   - component: {fileID: 1017928027}
   - component: {fileID: 1017928026}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -620,7 +620,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1eab829a351e13649afe781ce2760099, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  piecePrefabs: []
+  piecePrefabs:
+  - {fileID: 1948482469279457340, guid: 591ccc9c0cb804d3d944c66dcedfeac5, type: 3}
+  - {fileID: 6201929513744227749, guid: d83e037d3d9bd4fe89f52bd3528e5eb9, type: 3}
+  - {fileID: 6715781907852680861, guid: 398fbbd87bc734b8db6149b81853a126, type: 3}
+  - {fileID: 5663428340694225755, guid: 4059674890233404fabb2639d78f5f36, type: 3}
+  - {fileID: 4645048298369656288, guid: cdc6a9a9edc8d42ec974db354284a147, type: 3}
+  - {fileID: 3510624720418569996, guid: f2938e2a549bf4d6c9937debdf83718f, type: 3}
+  - {fileID: 8819579323488816149, guid: 1cbf0b4275ae741399e46625f5b37d73, type: 3}
+  - {fileID: 818750934962668819, guid: 417cc29b1d95643a094ca93c2960d317, type: 3}
+  - {fileID: 4477013611139950438, guid: 36d043fd1bee848178c93b3d091e129a, type: 3}
+  - {fileID: 8588230979463842956, guid: 07583536c7c404fecb616ac5f1237259, type: 3}
+  - {fileID: 2878575081202691427, guid: 8137ee8e830344f639df07373482b32e, type: 3}
+  - {fileID: 6495246892747578692, guid: f6fc72c4a51004ba5bbfb0e917ce2d60, type: 3}
+  - {fileID: 5019789354023389303, guid: e29b3407889aa433a954663df7781728, type: 3}
+  - {fileID: 5007778263878433770, guid: e828db26213674399b3848c875d129c7, type: 3}
+  - {fileID: 4675875872828201581, guid: a80f80db4f93140fd893fe4b21f6c7ca, type: 3}
+  - {fileID: 7719714321493942406, guid: 24b734454b3164016ad9ce6de9101ef8, type: 3}
+  - {fileID: 4988920972053422869, guid: 8c022a800ab7f458aabb506421e9c4ea, type: 3}
+  - {fileID: 5156779749043085862, guid: 4ca080e1303e84e948cff47e57bad85e, type: 3}
+  - {fileID: 3634205254790158666, guid: a9b3299b66ed94ad68c22ac294f3cbe3, type: 3}
+  - {fileID: 6289565269926939360, guid: df00214f7992a44078bef435b75ef0dc, type: 3}
 --- !u!1 &1594960589
 GameObject:
   m_ObjectHideFlags: 0

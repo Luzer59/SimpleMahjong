@@ -10,7 +10,7 @@ public class PCTester : MonoBehaviour
     public MahjongPiece piecePrefab;
     public MahjongPiece currentPiece;
 
-    private void Update()
+    /*private void Update()
     {
         if (!currentPiece)
         {
@@ -32,6 +32,29 @@ public class PCTester : MonoBehaviour
                 {
                     print("Invalid hit " + hit.point);
                 }
+            }
+        }
+    }*/
+
+    public int pressID = -1;
+    public bool pressed = false;
+    public GameInput.InputType type = GameInput.InputType.Normal;
+
+    private void Update()
+    {
+        int id;
+        if (!pressed && GameInput.instance.GetPressDown(out id))
+        {
+            pressID = id;
+            pressed = true;
+        }
+        else if (pressed && GameInput.instance.GetPressUp(out id, out GameInput.InputType type))
+        {
+            if (id == pressID)
+            {
+                this.type = type;
+                pressID = -1;
+                pressed = false;
             }
         }
     }
