@@ -67,7 +67,7 @@ public class MahjongPieceMap : MonoBehaviour
                 for (int u = 0; u < verticalSize; u++)
                 {
                     map[i][p, u] = new Cell();
-                    if (debug)
+                    if (debug && i == 0)
                     {
                         map[i][p, u].upLeftDebug = Instantiate(cellDebugPrefab, GridToWorldPoint(new Vector3Int(p, u, i)) + new Vector3(-horizontalSpacing * debugSpacing, 0f, verticalSpacing * debugSpacing), Quaternion.identity, transform);
                         map[i][p, u].upRightDebug = Instantiate(cellDebugPrefab, GridToWorldPoint(new Vector3Int(p, u, i)) + new Vector3(horizontalSpacing * debugSpacing, 0f, verticalSpacing * debugSpacing), Quaternion.identity, transform);
@@ -215,7 +215,7 @@ public class MahjongPieceMap : MonoBehaviour
                         // Upper side
                         map[index.z][index.x + i, index.y + p].downRight = piece;
 #if UNITY_EDITOR
-                        if (debug)
+                        if (debug && index.z == 0)
                         {
                             map[index.z][index.x + i, index.y + p].downRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
                         }
@@ -226,7 +226,7 @@ public class MahjongPieceMap : MonoBehaviour
                         // Lower side
                         map[index.z][index.x + i, index.y + p].upRight = piece;
 #if UNITY_EDITOR
-                        if (debug)
+                        if (debug && index.z == 0)
                         {
                             map[index.z][index.x + i, index.y + p].upRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
                         }
@@ -238,7 +238,7 @@ public class MahjongPieceMap : MonoBehaviour
                         map[index.z][index.x + i, index.y + p].downRight = piece;
                         map[index.z][index.x + i, index.y + p].upRight = piece;
 #if UNITY_EDITOR
-                        if (debug)
+                        if (debug && index.z == 0)
                         {
                             map[index.z][index.x + i, index.y + p].downRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
                             map[index.z][index.x + i, index.y + p].upRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
@@ -254,7 +254,7 @@ public class MahjongPieceMap : MonoBehaviour
                         // Upper side
                         map[index.z][index.x + i, index.y + p].downLeft = piece;
 #if UNITY_EDITOR
-                        if (debug)
+                        if (debug && index.z == 0)
                         {
                             map[index.z][index.x + i, index.y + p].downLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
                         }
@@ -265,7 +265,7 @@ public class MahjongPieceMap : MonoBehaviour
                         // Lower side
                         map[index.z][index.x + i, index.y + p].upLeft = piece;
 #if UNITY_EDITOR
-                        if (debug)
+                        if (debug && index.z == 0)
                         {
                             map[index.z][index.x + i, index.y + p].upLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
                         }
@@ -277,7 +277,7 @@ public class MahjongPieceMap : MonoBehaviour
                         map[index.z][index.x + i, index.y + p].downLeft = piece;
                         map[index.z][index.x + i, index.y + p].upLeft = piece;
 #if UNITY_EDITOR
-                        if (debug)
+                        if (debug && index.z == 0)
                         {
                             map[index.z][index.x + i, index.y + p].downLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
                             map[index.z][index.x + i, index.y + p].upLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
@@ -294,7 +294,7 @@ public class MahjongPieceMap : MonoBehaviour
                         map[index.z][index.x + i, index.y + p].downRight = piece;
                         map[index.z][index.x + i, index.y + p].downLeft = piece;
 #if UNITY_EDITOR
-                        if (debug)
+                        if (debug && index.z == 0)
                         {
                             map[index.z][index.x + i, index.y + p].downRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
                             map[index.z][index.x + i, index.y + p].downLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
@@ -307,7 +307,7 @@ public class MahjongPieceMap : MonoBehaviour
                         map[index.z][index.x + i, index.y + p].upRight = piece;
                         map[index.z][index.x + i, index.y + p].upLeft = piece;
 #if UNITY_EDITOR
-                        if (debug)
+                        if (debug && index.z == 0)
                         {
                             map[index.z][index.x + i, index.y + p].upRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
                             map[index.z][index.x + i, index.y + p].upLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
@@ -323,7 +323,7 @@ public class MahjongPieceMap : MonoBehaviour
                         map[index.z][index.x + i, index.y + p].downLeft = piece;
                         map[index.z][index.x + i, index.y + p].center = piece;
 #if UNITY_EDITOR
-                        if (debug)
+                        if (debug && index.z == 0)
                         {
                             map[index.z][index.x + i, index.y + p].upRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
                             map[index.z][index.x + i, index.y + p].upLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;

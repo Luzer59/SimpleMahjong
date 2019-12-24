@@ -158,7 +158,7 @@ MonoBehaviour:
   heightSpacing: 0.25
   pieceSize: 1
   debug: 0
-  debugSpacing: 0.2
+  debugSpacing: 0.1
   cellDebugPrefab: {fileID: 7737324204294271206, guid: c8a4a1988b92fde48a82c8bd2d27a057,
     type: 3}
   cellDebugPrefabFilledMat: {fileID: 2100000, guid: 3718e801693a2164f85ba32891adf910,
