@@ -19,13 +19,21 @@ public class MahjongLevelBuilderController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.K))
+        if (Input.GetKeyDown(KeyCode.S))
         {
             SaveMap();
         }
         if (Input.GetKeyDown(KeyCode.L))
         {
             LoadMap();
+        }
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            map.InitPieces(8);
+        }
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            map.UnloadMap();
         }
 
         if (Input.GetMouseButtonDown(0))
@@ -49,7 +57,7 @@ public class MahjongLevelBuilderController : MonoBehaviour
             if (Physics.Raycast(cameraRay, out RaycastHit hit))
             {
                 MahjongPiece piece = hit.collider.GetComponentInParent<MahjongPiece>();
-                if (piece && map.TryRemove(piece, true))
+                if (piece && map.TryRemove(piece, false))
                 {
                     print("Valid hit " + hit.point);
                 }

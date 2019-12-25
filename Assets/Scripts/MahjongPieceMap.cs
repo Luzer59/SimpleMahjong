@@ -68,12 +68,14 @@ public class MahjongPieceMap : MonoBehaviour
             pieces = new List<MahjongPiece>();
             piecesTaken = new List<bool>();
             piecesTakenCount = 0;
+            previousIndex = -1;
         }
 
         private List<RandomMahjongRow> lowerRows;
         private List<MahjongPiece> pieces;
         private List<bool> piecesTaken;
         private int piecesTakenCount;
+        private int previousIndex;
 
         public void Add(MahjongPiece piece)
         {
@@ -89,10 +91,18 @@ public class MahjongPieceMap : MonoBehaviour
             }
         }
 
-        public MahjongPiece Take()
+        public void Take(MahjongPiece piece)
+        {
+            int index = pieces.IndexOf(piece);
+            piecesTaken[index] = true;
+            piecesTakenCount++;
+            previousIndex = index;
+        }
+
+        public List<MahjongPiece> GetValid(bool limitDoublePiecePlacement)
         {
             List<MahjongPiece> input;
-            List<int> valid = new List<int>();
+            List<MahjongPiece> valid = new List<MahjongPiece>();
             for (int i = 0; i < pieces.Count; i++)
             {
                 if (piecesTakenCount != 0)
@@ -106,15 +116,24 @@ public class MahjongPieceMap : MonoBehaviour
                         {
                             if (!piecesTaken[i + 1])
                                 continue;
+
+                            if (limitDoublePiecePlacement && i + 1 == previousIndex)
+                                continue;
                         }
                         else if (i == pieces.Count - 1)
                         {
                             if (!piecesTaken[i - 1])
                                 continue;
+
+                            if (limitDoublePiecePlacement && i - 1 == previousIndex)
+                                continue;
                         }
                         else
                         {
                             if (!piecesTaken[i + 1] && !piecesTaken[i - 1])
+                                continue;
+
+                            if (limitDoublePiecePlacement && (i + 1 == previousIndex || i - 1 == previousIndex))
                                 continue;
                         }
                     }
@@ -127,15 +146,13 @@ public class MahjongPieceMap : MonoBehaviour
                     if (input.Count == 0)
                         break;
                 }
-
-                valid.Add(i);
+                if (input.Count == 0)
+                {
+                    valid.Add(pieces[i]);
+                }
             }
 
-            int random = Random.Range(0, valid.Count);
-            piecesTaken[valid[random]] = true;
-            piecesTakenCount++;
-
-            return pieces[valid[random]];
+            return valid;
         }
     }
 
@@ -221,6 +238,7 @@ public class MahjongPieceMap : MonoBehaviour
         int lastHeightEndIndex = 0;
         bool rowActive = false;
         int totalPieces = 0;
+        int tryCount = 10;
 
         // Find rows
         for (int u = 0; u < heightSize; u++)
@@ -229,14 +247,14 @@ public class MahjongPieceMap : MonoBehaviour
             {
                 for (int i = 0; i < horizontalSize; i++)
                 {
-                    if (map[u][i, p].center && !rowActive)
+                    if (!map[u][i, p].center)
+                    {
+                        rowActive = false;
+                    }
+                    else if (!rowActive)
                     {
                         rows.Add(new RandomMahjongRow(rows.GetRange(lastHeightStartIndex, lastHeightEndIndex - lastHeightStartIndex)));
                         rowActive = true;
-                    }
-                    else
-                    {
-                        rowActive = false;
                     }
                     if (rowActive)
                     {
@@ -253,18 +271,88 @@ public class MahjongPieceMap : MonoBehaviour
         Debug.Log("Found " + rows.Count + " rows with total " + totalPieces + " pieces");
 
         int currentPieceType = 0;
-        for (int i = 0; i < totalPieces; i++)
+        List<List<MahjongPiece>> valid = new List<List<MahjongPiece>>();
+        int rnd;
+        bool flag; 
+        int counter;
+
+        for (int j = 0; j < tryCount; j++)
         {
-            MahjongPiece piece = rows[Random.Range(0, rows.Count)].Take();
-            piece.SetType(currentPieceType);
-            if (i % 2 == 1)
+            int lastRow = -1;
+            flag = false;
+
+            for (int i = 0; i < totalPieces; i++)
             {
-                currentPieceType++;
-                if (currentPieceType > maxPieceTypes - 1)
+                flag = false;
+                valid.Clear();
+                counter = 0;
+
+                for (int p = 0; p < rows.Count; p++)
                 {
-                    currentPieceType = 0;
+                    valid.Add(rows[p].GetValid(false));
+                }
+
+                string debug = "";
+
+                for (int p = 0; p < valid.Count; p++)
+                {
+                    counter += valid[p].Count;
+                    debug += "Row " + p + ": " + valid[p].Count + ", ";
+                }
+
+                if (counter == 0)
+                {
+                    if (j < tryCount - 1)
+                    {
+                        Debug.LogWarning("No valid initialization positions. Retrying " + (tryCount - 1 - j) + " times");
+                    }
+                    else
+                    {
+                        Debug.LogError("No valid initialization positions. Map invalid.");
+                    }
+                    break;
+                }
+
+                rnd = Random.Range(0, counter - 1);
+                counter = 0;
+
+                for (int p = 0; p < valid.Count; p++)
+                {
+                    if (flag)
+                        break;
+
+                    for (int u = 0; u < valid[p].Count; u++)
+                    {
+                        if (rnd == counter)
+                        {
+                            //Debug.Log("Row: " + p + ", Piece: " + u + ", Type: " + currentPieceType);
+                            valid[p][u].SetType(currentPieceType);
+                            rows[p].Take(valid[p][u]);
+                            lastRow = p;
+                            flag = true;
+                            break;
+                        }
+                        counter++;
+                    }
+                }
+
+                if (i % 2 == 1)
+                {
+                    currentPieceType++;
+                    if (currentPieceType > maxPieceTypes - 1)
+                    {
+                        currentPieceType = 0;
+                    }
+                }
+
+                if (i == totalPieces - 1)
+                {
+                    flag = true;
                 }
             }
+
+            if (flag)
+                break;
         }
     }
 

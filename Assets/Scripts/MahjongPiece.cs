@@ -137,6 +137,8 @@ public class MahjongPiece : MonoBehaviour
         else
         {
             activeTypeObject = Instantiate(typePrefabs[type], transform, false);
+            activeTypeObject.transform.localPosition = Vector3.zero;
+            activeTypeObject.transform.localRotation = Quaternion.identity;
         }
     }
 }
