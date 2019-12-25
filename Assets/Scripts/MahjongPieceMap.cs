@@ -179,13 +179,10 @@ public class MahjongPieceMap : MonoBehaviour
     private Vector3Int WorldPointToHighestGridCenter(Vector3 worldPoint)
     {
         Vector3Int index = WorldPointToGrid(worldPoint);
-        for (int i = 0; i < heightSize; i++)
+        for (int i = heightSize - 1; i >= 0; i--)
         {
+            index.z = i;
             if (map[i][index.x, index.y].center)
-            {
-                index.z = i;
-            }
-            else
             {
                 break;
             }

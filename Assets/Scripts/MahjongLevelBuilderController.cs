@@ -49,7 +49,7 @@ public class MahjongLevelBuilderController : MonoBehaviour
             if (Physics.Raycast(cameraRay, out RaycastHit hit))
             {
                 MahjongPiece piece = hit.collider.GetComponentInParent<MahjongPiece>();
-                if (piece && map.TryRemove(piece, false))
+                if (piece && map.TryRemove(piece, true))
                 {
                     print("Valid hit " + hit.point);
                 }
