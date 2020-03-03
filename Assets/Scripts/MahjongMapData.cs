@@ -10,15 +10,17 @@ public class MahjongMapData
 
     }
 
-    public MahjongMapData(int count)
+    public MahjongMapData(int pieceCount, int pieceSize)
     {
-        pieceCount = count;
-        pieceHorizontalIndex = new int[count];
-        pieceVerticalIndex = new int[count];
-        pieceHeightIndex = new int[count];
+        this.pieceCount = pieceCount;
+        this.pieceSize = pieceSize;
+        pieceHorizontalIndex = new int[pieceCount];
+        pieceVerticalIndex = new int[pieceCount];
+        pieceHeightIndex = new int[pieceCount];
     }
 
     public int pieceCount;
+    public int pieceSize;
     public int[] pieceHorizontalIndex;
     public int[] pieceVerticalIndex;
     public int[] pieceHeightIndex;

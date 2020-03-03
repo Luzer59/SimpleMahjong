@@ -18,196 +18,72 @@ public class MahjongPieceMap : MonoBehaviour
     [SerializeField]
     private float heightSpacing;
     [SerializeField]
-    private int pieceSize = 1;
+    private int pieceSize = 2; // TODO: Use to scale spacing
 
     [SerializeField]
     private MahjongPiece piecePrefab;
 
-    private Cell[][,] map;
-
-#if UNITY_EDITOR
-    [SerializeField]
-    private bool debug = false;
-    [SerializeField]
-    private float debugSpacing = 0.2f;
-    [SerializeField]
-    private GameObject cellDebugPrefab;
-    [SerializeField]
-    private Material cellDebugPrefabFilledMat;
-    [SerializeField]
-    private Material cellDebugPrefabEmptyMat;
-#endif
+    private Cell[,,] map; // horizontal, vertical, height
+    private Dictionary<int, Vector3Int> pieceLeadIndexes;
+    private Dictionary<int, Vector3Int> availablePieceLeadIndexes;
 
     private class Cell
     {
         public Cell()
         {
-
+            isLeftBlocked = false;
+            isRightBlocked = false;
+            isTopBlocked = false;
         }
 
-        public MahjongPiece upLeft;
-        public MahjongPiece upRight;
-        public MahjongPiece downLeft;
-        public MahjongPiece downRight;
-        public MahjongPiece center;
-
-#if UNITY_EDITOR
-        public GameObject upLeftDebug;
-        public GameObject upRightDebug;
-        public GameObject downLeftDebug;
-        public GameObject downRightDebug;
-        public GameObject centerDebug;
-#endif
-    }
-
-    private class RandomMahjongRow
-    {
-        public RandomMahjongRow(List<RandomMahjongRow> lowerRows)
-        {
-            this.lowerRows = lowerRows;
-            pieces = new List<MahjongPiece>();
-            piecesTaken = new List<bool>();
-            piecesTakenCount = 0;
-            previousIndex = -1;
-        }
-
-        private List<RandomMahjongRow> lowerRows;
-        private List<MahjongPiece> pieces;
-        private List<bool> piecesTaken;
-        private int piecesTakenCount;
-        private int previousIndex;
-
-        public void Add(MahjongPiece piece)
-        {
-            pieces.Add(piece);
-            piecesTaken.Add(false);
-        }
-
-        public void RemoveEqual(List<MahjongPiece> list)
-        {
-            for (int i = 0; i < pieces.Count; i++)
-            {
-                list.Remove(pieces[i]);
-            }
-        }
-
-        public void Take(MahjongPiece piece)
-        {
-            int index = pieces.IndexOf(piece);
-            piecesTaken[index] = true;
-            piecesTakenCount++;
-            previousIndex = index;
-        }
-
-        public List<MahjongPiece> GetValid(bool limitDoublePiecePlacement)
-        {
-            List<MahjongPiece> input;
-            List<MahjongPiece> valid = new List<MahjongPiece>();
-            for (int i = 0; i < pieces.Count; i++)
-            {
-                if (piecesTakenCount != 0)
-                {
-                    if (piecesTaken[i])
-                        continue;
-
-                    if (pieces.Count > 1)
-                    {
-                        if (i == 0)
-                        {
-                            if (!piecesTaken[i + 1])
-                                continue;
-
-                            if (limitDoublePiecePlacement && i + 1 == previousIndex)
-                                continue;
-                        }
-                        else if (i == pieces.Count - 1)
-                        {
-                            if (!piecesTaken[i - 1])
-                                continue;
-
-                            if (limitDoublePiecePlacement && i - 1 == previousIndex)
-                                continue;
-                        }
-                        else
-                        {
-                            if (!piecesTaken[i + 1] && !piecesTaken[i - 1])
-                                continue;
-
-                            if (limitDoublePiecePlacement && (i + 1 == previousIndex || i - 1 == previousIndex))
-                                continue;
-                        }
-                    }
-                }
-
-                input = pieces[i].piecesBellow.ToList();
-                for (int p = 0; p < lowerRows.Count; p++)
-                {
-                    lowerRows[p].RemoveEqual(input);
-                    if (input.Count == 0)
-                        break;
-                }
-                if (input.Count == 0)
-                {
-                    valid.Add(pieces[i]);
-                }
-            }
-
-            return valid;
-        }
+        public bool isLeftBlocked;
+        public bool isRightBlocked;
+        public bool isTopBlocked;
+        public Vector3Int leadIndex;
+        public MahjongPiece piece;
     }
 
     private void Awake()
     {
-        map = new Cell[heightSize][,];
-        for (int i = 0; i < heightSize; i++)
+        pieceLeadIndexes = new Dictionary<int, Vector3Int>();
+        availablePieceLeadIndexes = new Dictionary<int, Vector3Int>();
+        map = new Cell[horizontalSize, verticalSize, heightSize];
+        for (int i = 0; i < horizontalSize; i++)
         {
-            map[i] = new Cell[horizontalSize, verticalSize];
-            for (int p = 0; p < horizontalSize; p++)
+            for (int p = 0; p < verticalSize; p++)
             {
-                for (int u = 0; u < verticalSize; u++)
+                for (int u = 0; u < heightSize; u++)
                 {
-                    map[i][p, u] = new Cell();
-#if UNITY_EDITOR
-                    if (debug && i == 0)
-                    {
-                        map[i][p, u].upLeftDebug = Instantiate(cellDebugPrefab, GridToWorldPoint(new Vector3Int(p, u, i)) + new Vector3(-horizontalSpacing * debugSpacing, 0f, verticalSpacing * debugSpacing), Quaternion.identity, transform);
-                        map[i][p, u].upRightDebug = Instantiate(cellDebugPrefab, GridToWorldPoint(new Vector3Int(p, u, i)) + new Vector3(horizontalSpacing * debugSpacing, 0f, verticalSpacing * debugSpacing), Quaternion.identity, transform);
-                        map[i][p, u].downLeftDebug = Instantiate(cellDebugPrefab, GridToWorldPoint(new Vector3Int(p, u, i)) + new Vector3(-horizontalSpacing * debugSpacing, 0f, -verticalSpacing * debugSpacing), Quaternion.identity, transform);
-                        map[i][p, u].downRightDebug = Instantiate(cellDebugPrefab, GridToWorldPoint(new Vector3Int(p, u, i)) + new Vector3(horizontalSpacing * debugSpacing, 0f, -verticalSpacing * debugSpacing), Quaternion.identity, transform);
-                        map[i][p, u].centerDebug = Instantiate(cellDebugPrefab, GridToWorldPoint(new Vector3Int(p, u, i)), Quaternion.identity, transform);
-                    }
-#endif
+                    map[i, p, u] = new Cell();
                 }
             }
         }
     }
 
-    private Vector3Int WorldPointToGrid(Vector3 worldPoint)
+    public Vector3Int WorldPointToGrid(Vector3 worldPoint, bool highest)
     {
         Vector3 localPoint = transform.InverseTransformPoint(worldPoint);
         float horLimitPos = (horizontalSize - 1) / 2f * horizontalSpacing;
         float verLimitPos = (verticalSize - 1) / 2f * verticalSpacing;
-        return new Vector3Int(
+        Vector3Int index = new Vector3Int(
             Mathf.RoundToInt(Mathf.InverseLerp(-horLimitPos, horLimitPos, localPoint.x) * (horizontalSize - 1)),
             Mathf.RoundToInt(Mathf.InverseLerp(verLimitPos, -verLimitPos, localPoint.z) * (verticalSize - 1)),
             0);
-    }
-
-    private Vector3Int WorldPointToHighestGridCenter(Vector3 worldPoint)
-    {
-        Vector3Int index = WorldPointToGrid(worldPoint);
-        for (int i = heightSize - 1; i >= 0; i--)
+        if (highest)
         {
-            index.z = i;
-            if (map[i][index.x, index.y].center)
+            for (int i = 0 ; i < heightSize; i++)
             {
-                break;
+                if (!map[index.x, index.y, i].piece)
+                {
+                    index.z = i;
+                    break;
+                }
             }
         }
         return index;
     }
 
-    private Vector3 GridToWorldPoint(Vector3Int index)
+    public Vector3 GridToWorldPoint(Vector3Int index)
     {
         return transform.TransformPoint(new Vector3(
             -((horizontalSize - 1) / 2f * horizontalSpacing) + horizontalSpacing * index.x, 
@@ -215,11 +91,22 @@ public class MahjongPieceMap : MonoBehaviour
             (verticalSize - 1) / 2f * verticalSpacing - verticalSpacing * index.y));
     }
 
+    public Vector3Int PieceToIndex(MahjongPiece piece)
+    {
+        pieceLeadIndexes.TryGetValue(piece.GetId(), out Vector3Int index);
+        return index;
+    }
+
+    public MahjongPiece IndexToPiece(Vector3Int index)
+    {
+        return map[index.x, index.y, index.z].piece;
+    }
+
     public void LoadMap(MahjongMapData data)
     {
         if (data.pieceCount % 2 != 0)
         {
-            Debug.LogError("Non-even map size");
+            Debug.LogError("Non-even map piece size. Cancelling...");
             return;
         }
 
@@ -227,13 +114,13 @@ public class MahjongPieceMap : MonoBehaviour
 
         for (int i = 0; i < data.pieceCount; i++)
         {
-            TryPlace(new Vector3Int(data.pieceHorizontalIndex[i], data.pieceVerticalIndex[i], data.pieceHeightIndex[i]), false);
+            TryPlace(new Vector3Int(data.pieceHorizontalIndex[i], data.pieceVerticalIndex[i], data.pieceHeightIndex[i]));
         }
     }
 
     public void InitPieces(int maxPieceTypes)
     {
-        List<RandomMahjongRow> rows = new List<RandomMahjongRow>();
+        /*//List<RandomMahjongRow> rows = new List<RandomMahjongRow>();
         int lastHeightStartIndex = 0;
         int lastHeightEndIndex = 0;
         bool rowActive = false;
@@ -247,7 +134,7 @@ public class MahjongPieceMap : MonoBehaviour
             {
                 for (int i = 0; i < horizontalSize; i++)
                 {
-                    if (!map[u][i, p].center)
+                    if (!map[i, p, u].center)
                     {
                         rowActive = false;
                     }
@@ -326,7 +213,7 @@ public class MahjongPieceMap : MonoBehaviour
                         if (rnd == counter)
                         {
                             //Debug.Log("Row: " + p + ", Piece: " + u + ", Type: " + currentPieceType);
-                            valid[p][u].SetType(currentPieceType);
+                            valid[p][u].SetVariation(currentPieceType);
                             rows[p].Take(valid[p][u]);
                             lastRow = p;
                             flag = true;
@@ -353,7 +240,7 @@ public class MahjongPieceMap : MonoBehaviour
 
             if (flag)
                 break;
-        }
+        }*/
     }
 
     public void UnloadMap()
@@ -364,9 +251,9 @@ public class MahjongPieceMap : MonoBehaviour
             {
                 for (int u = 0; u < heightSize; u++)
                 {
-                    if (map[u][i, p].center)
+                    if (map[i, p, u].piece)
                     {
-                        map[u][i, p].center.Remove();
+                        map[i, p, u].piece.Remove();
                     }
                 }
             }
@@ -382,14 +269,14 @@ public class MahjongPieceMap : MonoBehaviour
             {
                 for (int u = 0; u < heightSize; u++)
                 {
-                    if (map[u][i, p].center)
+                    if (map[i, p, u].piece)
                     {
                         pieces.Add(new Vector3Int(i, p, u));
                     }
                 }
             }
         }
-        MahjongMapData data = new MahjongMapData(pieces.Count);
+        MahjongMapData data = new MahjongMapData(pieces.Count, pieceSize);
         for (int i = 0; i < data.pieceCount; i++)
         {
             data.pieceHorizontalIndex[i] = pieces[i].x;
@@ -399,481 +286,327 @@ public class MahjongPieceMap : MonoBehaviour
         return data;
     }
 
-    public bool GetPossiblePieceIndex(Vector3 worldPoint, out Vector3Int index, out HashSet<MahjongPiece> piecesBellow)
+    public bool TryPlace(Vector3Int leadIndex)
     {
-        index = WorldPointToGrid(worldPoint);
-        piecesBellow = new HashSet<MahjongPiece>();
-
-        if (CheckOutOfMap(index, pieceSize))
-            return false;
-
-        for (int i = 0; i < heightSize; i++)
+        if (!IsOccupied(leadIndex, pieceSize))
         {
-            index.z = i;
-            if (GetOccupyingPieces(index, out bool filled, out HashSet<MahjongPiece> pieces))
-            {
-                if (filled)
-                {
-                    // Fully filled, may be possible on higher level
-                    piecesBellow = pieces;
-                    continue;
-                }
-                else
-                {
-                    // Only partially filled, no possible solutions on higher levels
-                    return false;
-                }
-            }
-            else
-            {
-                // Not filled, valid position
-                return true;
-            }
-        }
-        // Height cap reached
-        return false;
-    }
+            IsOccupied(leadIndex - new Vector3Int(0, 0, 1), pieceSize, out bool filled);
 
-    public bool TryPlace(Vector3Int index, bool needSupport)
-    {
-        if (!GetOccupyingPieces(index, out bool filled, out HashSet<MahjongPiece> pieces))
-        {
-            HashSet<MahjongPiece> piecesBellow = new HashSet<MahjongPiece>();
-            filled = true;
-            if (needSupport && index.z > 0)
-            {
-                GetOccupyingPieces(new Vector3Int(index.x, index.y, index.z - 1), out filled, out piecesBellow);
-            }
             if (filled)
             {
-                GetSideBlockingPieces(index, out HashSet<MahjongPiece> piecesLeft, out HashSet<MahjongPiece> piecesRight);
-                HashSet<MahjongPiece> piecesAbove = new HashSet<MahjongPiece>();
-                if (index.z < heightSize - 1)
-                {
-                    GetOccupyingPieces(index, out filled, out piecesAbove);
-                }
                 MahjongPiece newPiece = Instantiate(piecePrefab);
-                newPiece.Place(GridToWorldPoint(index), piecesAbove, piecesBellow, piecesLeft, piecesRight);
-                SetCellState(index, newPiece);
+                newPiece.Place(GridToWorldPoint(leadIndex));
+                pieceLeadIndexes.Add(newPiece.GetId(), leadIndex);
+                SetCellState(leadIndex, newPiece);
                 return true;
             }
-        }
-        return false;
-    }
-
-    public bool TryPlace(Vector3 worldPoint, bool needSupport)
-    {
-        if (GetPossiblePieceIndex(worldPoint, out Vector3Int index, out HashSet<MahjongPiece> piecesBellow))
-        {
-            return TryPlace(index, needSupport);
         }
         return false;
     }
 
     public bool TryRemove(Vector3Int index, bool sideBlocking)
     {
-        if ((sideBlocking && map[index.z][index.x, index.y].center.AreSidesBlocked()) || map[index.z][index.x, index.y].center.IsAboveBlocked())
+        if (!map[index.x, index.y, index.z].piece)
             return false;
 
-        map[index.z][index.x, index.y].center.Remove();
-        SetCellState(index, null);
+        /*if ((sideBlocking && AreSidesBlocked(map[index.x, index.y, index.z].leadIndex)) || IsOccupied(map[index.x, index.y, index.z].leadIndex + new Vector3Int(0, 0, 1), pieceSize))
+            return false;*/
+        if (!IsPieceAvailable(index, sideBlocking))
+            return false;
+
+        pieceLeadIndexes.Remove(map[index.x, index.y, index.z].piece.GetId());
+        map[index.x, index.y, index.z].piece.Remove();
+        SetCellState(map[index.x, index.y, index.z].leadIndex, null);
         return true;
     }
 
-    public bool TryRemove(MahjongPiece piece, bool sideBlocking)
+    public bool IsPieceAvailable(Vector3Int index, bool sideBlocking)
     {
-        return TryRemove(WorldPointToHighestGridCenter(piece.GetWorldPoint()), sideBlocking);
-    }
+        if (!map[index.x, index.y, index.z].piece)
+            return false;
 
-    private void SetCellState(Vector3Int index, MahjongPiece piece)
-    {
-        for (int i = -pieceSize; i < 1 + pieceSize; i++)
+        index = map[index.x, index.y, index.z].leadIndex;
+        bool leftBlocked = false;
+        bool rightBlocked = false;
+
+        for (int i = 0; i < pieceSize; i++)
         {
-            for (int p = -pieceSize; p < 1 + pieceSize; p++)
+            for (int p = 0; p < pieceSize; p++)
             {
-                if (i == -pieceSize)
+                if (map[index.x + i, index.y + p, index.z].isTopBlocked)
                 {
-                    // Left side
-                    if (p == -pieceSize)
+                    return false;
+                }
+
+                if (i == 0 && !leftBlocked)
+                {
+                    if (map[index.x + i, index.y + p, index.z].isLeftBlocked)
                     {
-                        // Upper side
-                        map[index.z][index.x + i, index.y + p].downRight = piece;
-#if UNITY_EDITOR
-                        if (debug && index.z == 0)
+                        leftBlocked = true;
+                        if (leftBlocked && rightBlocked)
                         {
-                            map[index.z][index.x + i, index.y + p].downRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
+                            return false;
                         }
-#endif
-                    }
-                    else if (p == pieceSize)
-                    {
-                        // Lower side
-                        map[index.z][index.x + i, index.y + p].upRight = piece;
-#if UNITY_EDITOR
-                        if (debug && index.z == 0)
-                        {
-                            map[index.z][index.x + i, index.y + p].upRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                        }
-#endif
-                    }
-                    else
-                    {
-                        // Middle
-                        map[index.z][index.x + i, index.y + p].downRight = piece;
-                        map[index.z][index.x + i, index.y + p].upRight = piece;
-#if UNITY_EDITOR
-                        if (debug && index.z == 0)
-                        {
-                            map[index.z][index.x + i, index.y + p].downRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                            map[index.z][index.x + i, index.y + p].upRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                        }
-#endif
                     }
                 }
-                else if (i == pieceSize)
+                else if (i == pieceSize - 1 && !rightBlocked)
                 {
-                    // Right side
-                    if (p == -pieceSize)
+                    if (map[index.x + i, index.y + p, index.z].isRightBlocked)
                     {
-                        // Upper side
-                        map[index.z][index.x + i, index.y + p].downLeft = piece;
-#if UNITY_EDITOR
-                        if (debug && index.z == 0)
+                        rightBlocked = true;
+                        if (leftBlocked && rightBlocked)
                         {
-                            map[index.z][index.x + i, index.y + p].downLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
+                            return false;
                         }
-#endif
-                    }
-                    else if (p == pieceSize)
-                    {
-                        // Lower side
-                        map[index.z][index.x + i, index.y + p].upLeft = piece;
-#if UNITY_EDITOR
-                        if (debug && index.z == 0)
-                        {
-                            map[index.z][index.x + i, index.y + p].upLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                        }
-#endif
-                    }
-                    else
-                    {
-                        // Middle
-                        map[index.z][index.x + i, index.y + p].downLeft = piece;
-                        map[index.z][index.x + i, index.y + p].upLeft = piece;
-#if UNITY_EDITOR
-                        if (debug && index.z == 0)
-                        {
-                            map[index.z][index.x + i, index.y + p].downLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                            map[index.z][index.x + i, index.y + p].upLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                        }
-#endif
-                    }
-                }
-                else
-                {
-                    // Middle
-                    if (p == -pieceSize)
-                    {
-                        // Upper side
-                        map[index.z][index.x + i, index.y + p].downRight = piece;
-                        map[index.z][index.x + i, index.y + p].downLeft = piece;
-#if UNITY_EDITOR
-                        if (debug && index.z == 0)
-                        {
-                            map[index.z][index.x + i, index.y + p].downRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                            map[index.z][index.x + i, index.y + p].downLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                        }
-#endif
-                    }
-                    else if (p == pieceSize)
-                    {
-                        // Lower side
-                        map[index.z][index.x + i, index.y + p].upRight = piece;
-                        map[index.z][index.x + i, index.y + p].upLeft = piece;
-#if UNITY_EDITOR
-                        if (debug && index.z == 0)
-                        {
-                            map[index.z][index.x + i, index.y + p].upRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                            map[index.z][index.x + i, index.y + p].upLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                        }
-#endif
-                    }
-                    else
-                    {
-                        // Middle
-                        map[index.z][index.x + i, index.y + p].upRight = piece;
-                        map[index.z][index.x + i, index.y + p].upLeft = piece;
-                        map[index.z][index.x + i, index.y + p].downRight = piece;
-                        map[index.z][index.x + i, index.y + p].downLeft = piece;
-                        map[index.z][index.x + i, index.y + p].center = piece;
-#if UNITY_EDITOR
-                        if (debug && index.z == 0)
-                        {
-                            map[index.z][index.x + i, index.y + p].upRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                            map[index.z][index.x + i, index.y + p].upLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                            map[index.z][index.x + i, index.y + p].downRightDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                            map[index.z][index.x + i, index.y + p].downLeftDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                            map[index.z][index.x + i, index.y + p].centerDebug.GetComponent<MeshRenderer>().material = piece ? cellDebugPrefabFilledMat : cellDebugPrefabEmptyMat;
-                        }
-#endif
                     }
                 }
             }
         }
+
+        return true;
     }
 
-    private bool GetOccupyingPieces(Vector3Int index, out bool completelyFilled, out HashSet<MahjongPiece> pieces)
+    private void CalcAvailablePieces()
     {
-        Cell cell;
-        pieces = new HashSet<MahjongPiece>();
-        bool found = false;
-        int cellsLeft = (1 + pieceSize * 2) * (1 + pieceSize * 2);
-        for (int i = -pieceSize; i < 1 + pieceSize; i++)
+        CalcAvailablePieces(pieceLeadIndexes);
+    }
+
+    private void CalcAvailablePieces(Dictionary<int, Vector3Int> uniqueIndexes)
+    {
+        availablePieceLeadIndexes.Clear();
+        List<Vector3Int> indexes = uniqueIndexes.Values.ToList();
+        for (int i = 0; i < indexes.Count; i++)
         {
-            for (int p = -pieceSize; p < 1 + pieceSize; p++)
+            if (IsPieceAvailable(indexes[i], true))
             {
-                cell = map[index.z][index.x + i, index.y + p];
-                if (i == -pieceSize)
+                availablePieceLeadIndexes.Add(map[indexes[i].x, indexes[i].y, indexes[i].z].piece.GetId(), indexes[i]);
+            }
+        }
+    }
+
+    private void SetCellState(Vector3Int leadIndex, MahjongPiece piece)
+    {
+        Dictionary<int, Vector3Int> afflictedPieces = new Dictionary<int, Vector3Int>();
+        afflictedPieces.Add(piece.GetId(), leadIndex);
+
+        for (int i = 0; i < pieceSize; i++)
+        {
+            for (int p = 0; p < pieceSize; p++)
+            {
+                map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].piece = piece;
+                if (piece)
                 {
-                    // Left side
-                    if (p == -pieceSize)
+                    map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].leadIndex = leadIndex;
+                    if (leadIndex.z > 0)
                     {
-                        // Upper side
-                        if (cell.downRight)
+                        map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].isTopBlocked = true;
+                        afflictedPieces.Add(map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1));
+                    }
+
+                    if (i == 0)
+                    {
+                        if (!IsOutOfMap(new Vector3Int(leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z)) && map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z].piece)
                         {
-                            pieces.Add(cell.downRight);
-                            cellsLeft--;
-                            found = true;
+                            map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].isLeftBlocked = true;
+                            map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z].isRightBlocked = true;
+                            afflictedPieces.Add(map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z));
                         }
                     }
-                    else if (p == pieceSize)
+                    else if (i == pieceSize - 1)
                     {
-                        // Lower side
-                        if (cell.upRight)
+                        if (!IsOutOfMap(new Vector3Int(leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z)) && map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z].piece)
                         {
-                            pieces.Add(cell.upRight);
-                            cellsLeft--;
-                            found = true;
-                        }
-                    }
-                    else
-                    {
-                        // Middle
-                        if (cell.downRight)
-                        {
-                            pieces.Add(cell.downRight);
-                            cellsLeft--;
-                            found = true;
-                        }
-                        else if (cell.upRight)
-                        {
-                            pieces.Add(cell.upRight);
-                            cellsLeft--;
-                            found = true;
-                        }
-                    }
-                }
-                else if (i == pieceSize)
-                {
-                    // Right side
-                    if (p == -pieceSize)
-                    {
-                        // Upper side
-                        if (cell.downLeft)
-                        {
-                            pieces.Add(cell.downLeft);
-                            cellsLeft--;
-                            found = true;
-                        }
-                    }
-                    else if (p == pieceSize)
-                    {
-                        // Lower side
-                        if (cell.upLeft)
-                        {
-                            pieces.Add(cell.upLeft);
-                            cellsLeft--;
-                            found = true;
-                        }
-                    }
-                    else
-                    {
-                        // Middle
-                        if (cell.downLeft)
-                        {
-                            pieces.Add(cell.downLeft);
-                            cellsLeft--;
-                            found = true;
-                        }
-                        else if (cell.upLeft)
-                        {
-                            pieces.Add(cell.upLeft);
-                            cellsLeft--;
-                            found = true;
+                            map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].isRightBlocked = true;
+                            map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z].isLeftBlocked = true;
+                            afflictedPieces.Add(map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z));
                         }
                     }
                 }
                 else
                 {
-                    // Middle
-                    if (p == -pieceSize)
+                    map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].leadIndex = default;
+                    if (leadIndex.z > 0)
                     {
-                        // Upper side
-                        if (cell.downRight)
+                        map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].isTopBlocked = false;
+                        afflictedPieces.Add(map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1));
+                    }
+
+                    if (i == 0)
+                    {
+                        if (!IsOutOfMap(new Vector3Int(leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z)) && map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z].piece)
                         {
-                            pieces.Add(cell.downRight);
-                            cellsLeft--;
-                            found = true;
-                        }
-                        else if (cell.downLeft)
-                        {
-                            pieces.Add(cell.downLeft);
-                            cellsLeft--;
-                            found = true;
+                            map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].isLeftBlocked = false;
+                            map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z].isRightBlocked = false;
+                            afflictedPieces.Add(map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z));
                         }
                     }
-                    else if (p == pieceSize)
+                    else if (i == pieceSize - 1)
                     {
-                        // Lower side
-                        if (cell.upRight)
+                        if (!IsOutOfMap(new Vector3Int(leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z)) && map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z].piece)
                         {
-                            pieces.Add(cell.upRight);
-                            cellsLeft--;
-                            found = true;
-                        }
-                        else if (cell.upLeft)
-                        {
-                            pieces.Add(cell.upLeft);
-                            cellsLeft--;
-                            found = true;
-                        }
-                    }
-                    else
-                    {
-                        // Middle
-                        if (cell.upRight)
-                        {
-                            pieces.Add(cell.upRight);
-                            cellsLeft--;
-                            found = true;
-                        }
-                        else if (cell.downRight)
-                        {
-                            pieces.Add(cell.downRight);
-                            cellsLeft--;
-                            found = true;
-                        }
-                        else if (cell.upLeft)
-                        {
-                            pieces.Add(cell.upLeft);
-                            cellsLeft--;
-                            found = true;
-                        }
-                        else if (cell.downLeft)
-                        {
-                            pieces.Add(cell.downLeft);
-                            cellsLeft--;
-                            found = true;
+                            map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].isRightBlocked = false;
+                            map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z].isLeftBlocked = false;
+                            afflictedPieces.Add(map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z));
                         }
                     }
                 }
             }
         }
-        completelyFilled = cellsLeft == 0;
-        return found;
+
+        CalcAvailablePieces(afflictedPieces);
     }
 
-    private bool GetSideBlockingPieces(Vector3Int index, out HashSet<MahjongPiece> left, out HashSet<MahjongPiece> right)
+    private bool IsOccupied(Vector3Int leadIndex, int radius, out bool completelyFilled, out List<Vector3Int> pieces)
     {
-        Cell cell;
-        left = new HashSet<MahjongPiece>();
-        right = new HashSet<MahjongPiece>();
-        bool leftFound = false;
-        bool rightFound = false;
-        for (int i = -pieceSize; i < 1 + pieceSize; i += pieceSize)
+        pieces = new List<Vector3Int>();
+        completelyFilled = false;
+        Vector3Int currentIndex;
+        if (leadIndex.z >= heightSize || leadIndex.z < 0)
+            return false;
+        
+        for (int i = 0; i < radius; i++)
         {
-            for (int p = -pieceSize; p < 1 + pieceSize; p++)
+            for (int p = 0; p < radius; p++)
             {
-                cell = map[index.z][index.x + i, index.y + p];
-                if (i == -pieceSize)
+                currentIndex = new Vector3Int(leadIndex.x + i, leadIndex.y + p, leadIndex.z);
+                if (!IsOutOfMap(currentIndex) && map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].piece)
                 {
-                    // Left side
-                    if (p == -pieceSize)
-                    {
-                        // Upper side
-                        if (cell.downLeft)
-                        {
-                            left.Add(cell.downLeft);
-                            leftFound = true;
-                        }
-                    }
-                    else if (p == pieceSize)
-                    {
-                        // Lower side
-                        if (cell.upLeft)
-                        {
-                            left.Add(cell.upLeft);
-                            leftFound = true;
-                        }
-                    }
-                    else
-                    {
-                        // Middle
-                        if (cell.downLeft)
-                        {
-                            left.Add(cell.downLeft);
-                            leftFound = true;
-                        }
-                        else if (cell.upLeft)
-                        {
-                            left.Add(cell.upLeft);
-                            leftFound = true;
-                        }
-                    }
-                }
-                else if (i == pieceSize)
-                {
-                    // Right side
-                    if (p == -pieceSize)
-                    {
-                        // Upper side
-                        if (cell.downRight)
-                        {
-                            right.Add(cell.downRight);
-                            rightFound = true;
-                        }
-                    }
-                    else if (p == pieceSize)
-                    {
-                        // Lower side
-                        if (cell.upRight)
-                        {
-                            right.Add(cell.upRight);
-                            rightFound = true;
-                        }
-                    }
-                    else
-                    {
-                        // Middle
-                        if (cell.downRight)
-                        {
-                            right.Add(cell.downRight);
-                            rightFound = true;
-                        }
-                        else if (cell.upRight)
-                        {
-                            right.Add(cell.upRight);
-                            rightFound = true;
-                        }
-                    }
+                    pieces.Add(new Vector3Int(i, p, leadIndex.z));
                 }
             }
         }
-        return leftFound && rightFound;
+
+        if (pieces.Count == radius * radius)
+        {
+            completelyFilled = true;
+        }
+        else
+        {
+            completelyFilled = false;
+        }
+
+        return pieces.Count > 0;
     }
 
-    private bool CheckOutOfMap(Vector3Int index, int radius)
+    private bool IsOccupied(Vector3Int leadIndex, int radius, out bool completelyFilled)
     {
-        return (index.x - radius < 0) || (index.x + radius > horizontalSize - 1) || (index.y - radius < 0) || (index.y + radius > verticalSize - 1);
+        int count = 0;
+        completelyFilled = false;
+        Vector3Int currentIndex;
+        if (leadIndex.z >= heightSize || leadIndex.z < 0)
+            return false;
+
+        for (int i = 0; i < radius; i++)
+        {
+            for (int p = 0; p < radius; p++)
+            {
+                currentIndex = new Vector3Int(leadIndex.x + i, leadIndex.y + p, leadIndex.z);
+                if (!IsOutOfMap(currentIndex) && map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].piece)
+                {
+                    count++;
+                }
+            }
+        }
+
+        if (count == radius * radius)
+        {
+            completelyFilled = true;
+        }
+        else
+        {
+            completelyFilled = false;
+        }
+
+        return count > 0;
+    }
+
+    private bool IsOccupied(Vector3Int leadIndex, int radius)
+    {
+        int count = 0; 
+        Vector3Int currentIndex;
+        if (leadIndex.z >= heightSize || leadIndex.z < 0)
+            return false;
+
+        for (int i = 0; i < radius; i++)
+        {
+            for (int p = 0; p < radius; p++)
+            {
+                currentIndex = new Vector3Int(leadIndex.x + i, leadIndex.y + p, leadIndex.z);
+                if (!IsOutOfMap(currentIndex) && map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].piece)
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count > 0;
+    }
+
+    private bool AreSidesBlocked(Vector3Int leadIndex, out List<Vector3Int> pieces)
+    {
+        bool leftBlocked = false;
+        bool rightBlocked = false;
+        pieces = new List<Vector3Int>();
+
+        if (!IsOutOfMap(leadIndex + new Vector3Int(-1, 0, 0)))
+        {
+            for (int i = 0; i < pieceSize; i++)
+            {
+                if (map[leadIndex.x - 1, leadIndex.y + i, leadIndex.z].piece)
+                {
+                    leftBlocked = true;
+                    pieces.Add(new Vector3Int(leadIndex.x - 1, leadIndex.y + i, leadIndex.z));
+                }
+            }
+        }
+
+        if (!IsOutOfMap(leadIndex + new Vector3Int(pieceSize, 0, 0)))
+        {
+            for (int i = 0; i < pieceSize; i++)
+            {
+                if (map[leadIndex.x + pieceSize, leadIndex.y + i, leadIndex.z].piece)
+                {
+                    leftBlocked = true;
+                    pieces.Add(new Vector3Int(leadIndex.x + pieceSize, leadIndex.y + i, leadIndex.z));
+                }
+            }
+        }
+
+        return leftBlocked && rightBlocked;
+    }
+
+    private bool AreSidesBlocked(Vector3Int leadIndex)
+    {
+        bool leftBlocked = false;
+        bool rightBlocked = false;
+
+        if (!IsOutOfMap(leadIndex + new Vector3Int(-1, 0, 0)))
+        {
+            for (int i = 0; i < pieceSize; i++)
+            {
+                if (map[leadIndex.x - 1, leadIndex.y + i, leadIndex.z].piece)
+                {
+                    leftBlocked = true;
+                }
+            }
+        }
+
+        if (!IsOutOfMap(leadIndex + new Vector3Int(pieceSize, 0, 0)))
+        {
+            for (int i = 0; i < pieceSize; i++)
+            {
+                if (map[leadIndex.x + pieceSize, leadIndex.y + i, leadIndex.z].piece)
+                {
+                    leftBlocked = true;
+                }
+            }
+        }
+
+        return leftBlocked && rightBlocked;
+    }
+
+    private bool IsOutOfMap(Vector3Int index)
+    {
+        return (index.x < 0) || (index.x > horizontalSize - 1) || (index.y < 0) || (index.y > verticalSize - 1);
     }
 }
