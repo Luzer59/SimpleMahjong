@@ -27,6 +27,8 @@ public class MahjongPieceMap : MonoBehaviour
     private Dictionary<int, Vector3Int> pieceLeadIndexes;
     private Dictionary<int, Vector3Int> availablePieceLeadIndexes;
 
+    public List<MahjongPiece> availableDebug = new List<MahjongPiece>();
+
     private class Cell
     {
         public Cell()
@@ -116,131 +118,52 @@ public class MahjongPieceMap : MonoBehaviour
         {
             TryPlace(new Vector3Int(data.pieceHorizontalIndex[i], data.pieceVerticalIndex[i], data.pieceHeightIndex[i]));
         }
+
+        availableDebug = availablePieceLeadIndexes.Values.ToArray().Select(ind => map[ind.x, ind.y, ind.z].piece).ToList();
     }
 
     public void InitPieces(int maxPieceTypes)
     {
-        /*//List<RandomMahjongRow> rows = new List<RandomMahjongRow>();
-        int lastHeightStartIndex = 0;
-        int lastHeightEndIndex = 0;
-        bool rowActive = false;
-        int totalPieces = 0;
-        int tryCount = 10;
+        Dictionary<int, Vector3Int> tempAvailablePieceIndexes = new Dictionary<int, Vector3Int>(availablePieceLeadIndexes);
+        Cell[,,] tempMap = new Cell[map.GetLength(0), map.GetLength(1), map.GetLength(2)];
+        System.Array.Copy(map, tempMap, map.GetLength(0) * map.GetLength(1) * map.GetLength(2));
+        List<MahjongPiece>[] resultTypeList = new List<MahjongPiece>[maxPieceTypes];
+        int currentType = 0;
+        int index;
+        List<Vector3Int> values;
 
-        // Find rows
-        for (int u = 0; u < heightSize; u++)
+        for (int i = 0; i < maxPieceTypes; i++)
         {
-            for (int p = 0; p < verticalSize; p++)
-            {
-                for (int i = 0; i < horizontalSize; i++)
-                {
-                    if (!map[i, p, u].center)
-                    {
-                        rowActive = false;
-                    }
-                    else if (!rowActive)
-                    {
-                        rows.Add(new RandomMahjongRow(rows.GetRange(lastHeightStartIndex, lastHeightEndIndex - lastHeightStartIndex)));
-                        rowActive = true;
-                    }
-                    if (rowActive)
-                    {
-                        rows[rows.Count - 1].Add(map[u][i, p].center);
-                        totalPieces++;
-                        i += Mathf.Max(0, 1 + (pieceSize - 1) * 2);
-                    }
-                }
-            }
-            lastHeightStartIndex = lastHeightEndIndex + 1;
-            lastHeightEndIndex = rows.Count - 1;
+            resultTypeList[i] = new List<MahjongPiece>();
         }
 
-        Debug.Log("Found " + rows.Count + " rows with total " + totalPieces + " pieces");
-
-        int currentPieceType = 0;
-        List<List<MahjongPiece>> valid = new List<List<MahjongPiece>>();
-        int rnd;
-        bool flag; 
-        int counter;
-
-        for (int j = 0; j < tryCount; j++)
+        for (int i = 0; i < pieceLeadIndexes.Count / 2; i++)
         {
-            int lastRow = -1;
-            flag = false;
+            values = tempAvailablePieceIndexes.Values.ToList();
 
-            for (int i = 0; i < totalPieces; i++)
+            index = Random.Range(0, values.Count);
+            resultTypeList[currentType].Add(tempMap[values[index].x, values[index].y, values[index].z].piece);
+            SetCellState(tempMap, tempAvailablePieceIndexes, values[index], null);
+            values.RemoveAt(index);
+
+            index = Random.Range(0, values.Count);
+            resultTypeList[currentType].Add(tempMap[values[index].x, values[index].y, values[index].z].piece);
+            SetCellState(tempMap, tempAvailablePieceIndexes, values[index], null);
+
+            currentType++;
+            if (currentType >= maxPieceTypes)
             {
-                flag = false;
-                valid.Clear();
-                counter = 0;
-
-                for (int p = 0; p < rows.Count; p++)
-                {
-                    valid.Add(rows[p].GetValid(false));
-                }
-
-                string debug = "";
-
-                for (int p = 0; p < valid.Count; p++)
-                {
-                    counter += valid[p].Count;
-                    debug += "Row " + p + ": " + valid[p].Count + ", ";
-                }
-
-                if (counter == 0)
-                {
-                    if (j < tryCount - 1)
-                    {
-                        Debug.LogWarning("No valid initialization positions. Retrying " + (tryCount - 1 - j) + " times");
-                    }
-                    else
-                    {
-                        Debug.LogError("No valid initialization positions. Map invalid.");
-                    }
-                    break;
-                }
-
-                rnd = Random.Range(0, counter - 1);
-                counter = 0;
-
-                for (int p = 0; p < valid.Count; p++)
-                {
-                    if (flag)
-                        break;
-
-                    for (int u = 0; u < valid[p].Count; u++)
-                    {
-                        if (rnd == counter)
-                        {
-                            //Debug.Log("Row: " + p + ", Piece: " + u + ", Type: " + currentPieceType);
-                            valid[p][u].SetVariation(currentPieceType);
-                            rows[p].Take(valid[p][u]);
-                            lastRow = p;
-                            flag = true;
-                            break;
-                        }
-                        counter++;
-                    }
-                }
-
-                if (i % 2 == 1)
-                {
-                    currentPieceType++;
-                    if (currentPieceType > maxPieceTypes - 1)
-                    {
-                        currentPieceType = 0;
-                    }
-                }
-
-                if (i == totalPieces - 1)
-                {
-                    flag = true;
-                }
+                currentType = 0;
             }
+        }
 
-            if (flag)
-                break;
-        }*/
+        for (int i = 0; i < maxPieceTypes; i++)
+        {
+            for (int p = 0; p < resultTypeList[i].Count; p++)
+            {
+                resultTypeList[i][p].SetVariation(i);
+            }
+        }
     }
 
     public void UnloadMap()
@@ -258,6 +181,8 @@ public class MahjongPieceMap : MonoBehaviour
                 }
             }
         }
+        pieceLeadIndexes.Clear();
+        availablePieceLeadIndexes.Clear();
     }
 
     public MahjongMapData ConvertLoadedMap()
@@ -288,39 +213,48 @@ public class MahjongPieceMap : MonoBehaviour
 
     public bool TryPlace(Vector3Int leadIndex)
     {
-        if (!IsOccupied(leadIndex, pieceSize))
-        {
-            IsOccupied(leadIndex - new Vector3Int(0, 0, 1), pieceSize, out bool filled);
+        return TryPlace(map, availablePieceLeadIndexes, pieceLeadIndexes, leadIndex);
+    }
 
-            if (filled)
-            {
-                MahjongPiece newPiece = Instantiate(piecePrefab);
-                newPiece.Place(GridToWorldPoint(leadIndex));
-                pieceLeadIndexes.Add(newPiece.GetId(), leadIndex);
-                SetCellState(leadIndex, newPiece);
-                return true;
-            }
+    private bool TryPlace(Cell[,,] map, Dictionary<int, Vector3Int> available, Dictionary<int, Vector3Int> all, Vector3Int leadIndex)
+    {
+        if (OccupiedPieces(leadIndex, pieceSize) == 0 && OccupiedPieces(leadIndex - new Vector3Int(0, 0, 1), pieceSize) == pieceSize * pieceSize)
+        {
+            MahjongPiece newPiece = Instantiate(piecePrefab);
+            newPiece.Place(GridToWorldPoint(leadIndex));
+            all.Add(newPiece.GetId(), leadIndex);
+            SetCellState(map, available, leadIndex, newPiece);
+            return true;
         }
         return false;
     }
 
     public bool TryRemove(Vector3Int index, bool sideBlocking)
     {
+        return TryRemove(map, availablePieceLeadIndexes, pieceLeadIndexes, index, sideBlocking);
+    }
+
+    private bool TryRemove(Cell[,,] map, Dictionary<int, Vector3Int> available, Dictionary<int, Vector3Int> all,  Vector3Int index, bool sideBlocking)
+    {
         if (!map[index.x, index.y, index.z].piece)
             return false;
 
-        /*if ((sideBlocking && AreSidesBlocked(map[index.x, index.y, index.z].leadIndex)) || IsOccupied(map[index.x, index.y, index.z].leadIndex + new Vector3Int(0, 0, 1), pieceSize))
-            return false;*/
         if (!IsPieceAvailable(index, sideBlocking))
             return false;
 
-        pieceLeadIndexes.Remove(map[index.x, index.y, index.z].piece.GetId());
-        map[index.x, index.y, index.z].piece.Remove();
-        SetCellState(map[index.x, index.y, index.z].leadIndex, null);
+        MahjongPiece piece = map[index.x, index.y, index.z].piece;
+        SetCellState(map, available, map[index.x, index.y, index.z].leadIndex, null);
+        all.Remove(map[index.x, index.y, index.z].piece.GetId());
+        piece.Remove();
         return true;
     }
 
     public bool IsPieceAvailable(Vector3Int index, bool sideBlocking)
+    {
+        return IsPieceAvailable(map, index, sideBlocking);
+    }
+
+    private bool IsPieceAvailable(Cell[,,] map, Vector3Int index, bool sideBlocking)
     {
         if (!map[index.x, index.y, index.z].piece)
             return false;
@@ -366,28 +300,41 @@ public class MahjongPieceMap : MonoBehaviour
         return true;
     }
 
-    private void CalcAvailablePieces()
+    private void CalcAvailablePieces(Cell[,,] map, Dictionary<int, Vector3Int> available, Dictionary<int, Vector3Int> changed)
     {
-        CalcAvailablePieces(pieceLeadIndexes);
-    }
-
-    private void CalcAvailablePieces(Dictionary<int, Vector3Int> uniqueIndexes)
-    {
-        availablePieceLeadIndexes.Clear();
-        List<Vector3Int> indexes = uniqueIndexes.Values.ToList();
+        List<Vector3Int> indexes = changed.Values.ToList();
         for (int i = 0; i < indexes.Count; i++)
         {
-            if (IsPieceAvailable(indexes[i], true))
+            // TODO: Fix available list
+
+            if (IsPieceAvailable(map, indexes[i], true))
             {
-                availablePieceLeadIndexes.Add(map[indexes[i].x, indexes[i].y, indexes[i].z].piece.GetId(), indexes[i]);
+                if (!available.ContainsKey(map[indexes[i].x, indexes[i].y, indexes[i].z].piece.GetId()))
+                {
+                    available.Add(map[indexes[i].x, indexes[i].y, indexes[i].z].piece.GetId(), indexes[i]);
+                }
+            }
+            else
+            {
+                if (available.ContainsKey(map[indexes[i].x, indexes[i].y, indexes[i].z].piece.GetId()))
+                {
+                    available.Remove(map[indexes[i].x, indexes[i].y, indexes[i].z].piece.GetId());
+                }
             }
         }
     }
 
-    private void SetCellState(Vector3Int leadIndex, MahjongPiece piece)
+    private void SetCellState(Cell[,,] map, Dictionary<int, Vector3Int> available, Vector3Int leadIndex, MahjongPiece piece)
     {
         Dictionary<int, Vector3Int> afflictedPieces = new Dictionary<int, Vector3Int>();
-        afflictedPieces.Add(piece.GetId(), leadIndex);
+        if (piece)
+        {
+            afflictedPieces.Add(piece.GetId(), leadIndex);
+        }
+        else
+        {
+            afflictedPieces.Add(map[leadIndex.x, leadIndex.y, leadIndex.z].piece.GetId(), leadIndex);
+        }
 
         for (int i = 0; i < pieceSize; i++)
         {
@@ -400,7 +347,10 @@ public class MahjongPieceMap : MonoBehaviour
                     if (leadIndex.z > 0)
                     {
                         map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].isTopBlocked = true;
-                        afflictedPieces.Add(map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1));
+                        if (!afflictedPieces.ContainsKey(map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].piece.GetId()))
+                        {
+                            afflictedPieces.Add(map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1));
+                        }
                     }
 
                     if (i == 0)
@@ -409,7 +359,10 @@ public class MahjongPieceMap : MonoBehaviour
                         {
                             map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].isLeftBlocked = true;
                             map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z].isRightBlocked = true;
-                            afflictedPieces.Add(map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z));
+                            if (!afflictedPieces.ContainsKey(map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z].piece.GetId()))
+                            {
+                                afflictedPieces.Add(map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z].piece.GetId(), new Vector3Int(leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z));
+                            }
                         }
                     }
                     else if (i == pieceSize - 1)
@@ -418,7 +371,10 @@ public class MahjongPieceMap : MonoBehaviour
                         {
                             map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].isRightBlocked = true;
                             map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z].isLeftBlocked = true;
-                            afflictedPieces.Add(map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z));
+                            if (!afflictedPieces.ContainsKey(map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z].piece.GetId()))
+                            {
+                                afflictedPieces.Add(map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z].piece.GetId(), new Vector3Int(leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z));
+                            }
                         }
                     }
                 }
@@ -428,7 +384,10 @@ public class MahjongPieceMap : MonoBehaviour
                     if (leadIndex.z > 0)
                     {
                         map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].isTopBlocked = false;
-                        afflictedPieces.Add(map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1));
+                        if (!afflictedPieces.ContainsKey(map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].piece.GetId()))
+                        {
+                            afflictedPieces.Add(map[leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i, leadIndex.y + p, leadIndex.z - 1));
+                        }
                     }
 
                     if (i == 0)
@@ -437,7 +396,10 @@ public class MahjongPieceMap : MonoBehaviour
                         {
                             map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].isLeftBlocked = false;
                             map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z].isRightBlocked = false;
-                            afflictedPieces.Add(map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z));
+                            if (!afflictedPieces.ContainsKey(map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z].piece.GetId()))
+                            {
+                                afflictedPieces.Add(map[leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z].piece.GetId(), new Vector3Int(leadIndex.x + i - 1, leadIndex.y + p, leadIndex.z));
+                            }
                         }
                     }
                     else if (i == pieceSize - 1)
@@ -446,23 +408,25 @@ public class MahjongPieceMap : MonoBehaviour
                         {
                             map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].isRightBlocked = false;
                             map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z].isLeftBlocked = false;
-                            afflictedPieces.Add(map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z - 1].piece.GetId(), new Vector3Int(leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z));
+                            if (!afflictedPieces.ContainsKey(map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z].piece.GetId()))
+                            {
+                                afflictedPieces.Add(map[leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z].piece.GetId(), new Vector3Int(leadIndex.x + i + 1, leadIndex.y + p, leadIndex.z));
+                            }
                         }
                     }
                 }
             }
         }
 
-        CalcAvailablePieces(afflictedPieces);
+        CalcAvailablePieces(map, available, afflictedPieces);
     }
 
-    private bool IsOccupied(Vector3Int leadIndex, int radius, out bool completelyFilled, out List<Vector3Int> pieces)
+    private int OccupiedPieces(Vector3Int leadIndex, int radius, out List<Vector3Int> results)
     {
-        pieces = new List<Vector3Int>();
-        completelyFilled = false;
+        results = new List<Vector3Int>();
         Vector3Int currentIndex;
         if (leadIndex.z >= heightSize || leadIndex.z < 0)
-            return false;
+            return pieceSize * pieceSize;
         
         for (int i = 0; i < radius; i++)
         {
@@ -471,61 +435,20 @@ public class MahjongPieceMap : MonoBehaviour
                 currentIndex = new Vector3Int(leadIndex.x + i, leadIndex.y + p, leadIndex.z);
                 if (!IsOutOfMap(currentIndex) && map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].piece)
                 {
-                    pieces.Add(new Vector3Int(i, p, leadIndex.z));
+                    results.Add(new Vector3Int(i, p, leadIndex.z));
                 }
             }
         }
 
-        if (pieces.Count == radius * radius)
-        {
-            completelyFilled = true;
-        }
-        else
-        {
-            completelyFilled = false;
-        }
-
-        return pieces.Count > 0;
+        return results.Count;
     }
 
-    private bool IsOccupied(Vector3Int leadIndex, int radius, out bool completelyFilled)
-    {
-        int count = 0;
-        completelyFilled = false;
-        Vector3Int currentIndex;
-        if (leadIndex.z >= heightSize || leadIndex.z < 0)
-            return false;
-
-        for (int i = 0; i < radius; i++)
-        {
-            for (int p = 0; p < radius; p++)
-            {
-                currentIndex = new Vector3Int(leadIndex.x + i, leadIndex.y + p, leadIndex.z);
-                if (!IsOutOfMap(currentIndex) && map[leadIndex.x + i, leadIndex.y + p, leadIndex.z].piece)
-                {
-                    count++;
-                }
-            }
-        }
-
-        if (count == radius * radius)
-        {
-            completelyFilled = true;
-        }
-        else
-        {
-            completelyFilled = false;
-        }
-
-        return count > 0;
-    }
-
-    private bool IsOccupied(Vector3Int leadIndex, int radius)
+    private int OccupiedPieces(Vector3Int leadIndex, int radius)
     {
         int count = 0; 
         Vector3Int currentIndex;
         if (leadIndex.z >= heightSize || leadIndex.z < 0)
-            return false;
+            return pieceSize * pieceSize;
 
         for (int i = 0; i < radius; i++)
         {
@@ -539,7 +462,7 @@ public class MahjongPieceMap : MonoBehaviour
             }
         }
 
-        return count > 0;
+        return count;
     }
 
     private bool AreSidesBlocked(Vector3Int leadIndex, out List<Vector3Int> pieces)
